@@ -1,6 +1,8 @@
 var { assert, expect} = require('chai');
 var ecc = require('../ecc');
+var BN = require('bn.js')
 
+/*
  describe('FieldElement', function() {
 	var newNum = new ecc.FieldElement(2,3);
 
@@ -75,7 +77,7 @@ describe('Point', function() {
 	y =  4;
 	it('should validate curve', function () {
 		expect(
-			function() {p = new ecc.Point(x, y, 5, 7); console.log(p)}
+			function() {p = new ecc.Point(x, y, 5, 7); }
 		).to.throw(`(${x}, ${y}) is not on the curve`); 
 		expect(
 			function() {new ecc.Point(3, -7, 5, 7)}
@@ -86,7 +88,7 @@ describe('Point', function() {
 		
 	})
 	it('should add0', function () {
-		a = new ecc.Point(NaN, NaN, 5, 7);
+		a = new ecc.Point(undefined, undefined, 5, 7);
 		b = new ecc.Point(2, 5, 5, 7);
 		c = new ecc.Point(2, -5, 5, 7);
 		assert.deepEqual(a.add(b), b);
@@ -106,7 +108,9 @@ describe('Point', function() {
 	})
 })
  
+
 describe('ECC', function() {
+	
 	it('test_on_curve', function () {
 		prime = 223;
 		a = new ecc.FieldElement(0, prime);
@@ -123,6 +127,21 @@ describe('ECC', function() {
 			y = new ecc.FieldElement(obj.y, prime);
 			expect( function() {p = new ecc.Point(x, y, a, b); }).to.throw(`(${x.num}, ${y.num}) is not on the curve`)
 		})		
+	})
+	it('test_add0', function() {
+		prime = 223;
+		a1 = new ecc.FieldElement(0, prime);
+		b1 = new ecc.FieldElement(7, prime);
+		x1 = new ecc.FieldElement(192, prime);
+		y1 = new ecc.FieldElement(105, prime);
+		p1 = new ecc.Point(x1, y1, a1, b1);
+		a2 = new ecc.FieldElement(0, prime);
+		b2 = new ecc.FieldElement(7, prime);
+		x2 = new ecc.FieldElement(17, prime);
+		y2 = new ecc.FieldElement(56, prime);
+		p2 = new ecc.Point(x2, y2, a2, b2);
+		p1.add(p2);
+		p1.add(p1);
 	})
 	it('test_add1', function() {
 		prime = 223;
@@ -144,8 +163,46 @@ describe('ECC', function() {
 			assert.deepEqual(p1.add(p2), p3)
 		})
 	})
+	
+	it('test_rmul', function() {
+		prime = 223;
+		a = new ecc.FieldElement(0, prime);
+		b = new ecc.FieldElement(7, prime);
+		multiplications = [
+			{s:2,x1:192,y1:105,x2:49,y2:71},
+			{s:2,x1:143,y1:98,x2:64,y2:168},
+			{s:2,x1:47,y1:71,x2:36,y2:111},
+			{s:4,x1:47,y1:71,x2:194,y2:51},
+			{s:8,x1:47,y1:71,x2:116,y2:55},
+			{s:21,x1:47,y1:71,x2:undefined,y2:undefined},			
+		]
+		multiplications.map(obj =>{
+			s = obj.s;
+			x1 = new ecc.FieldElement(obj.x1, prime);
+			y1 = new ecc.FieldElement(obj.y1, prime);
+			a = new ecc.FieldElement(0, prime);
+			b = new ecc.FieldElement(7, prime);
+			p1 = new ecc.Point(x1, y1, a, b);
+			x2 = new ecc.FieldElement(obj.x2, prime);
+			y2 = new ecc.FieldElement(obj.y2, prime);
+			p2 = new ecc.Point(x2, y2, a, b);
+			assert.deepEqual(p1.rmul(s), p2);
+		})
+	})
 })
+*/
+describe('S256Test', function() {
+	it('test_order', function() {
+		G = new ecc.S256Point(
+			new BN('0x79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798',16),
+			new BN('0x483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8',16))
+		// G = new ecc.S256Point(
+		// 	new BN(47),
+		// 	new BN(71))
+		console.log('g',G)
 
+		})
+})
 
 
 
