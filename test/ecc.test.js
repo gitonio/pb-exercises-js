@@ -2,16 +2,15 @@ var { assert, expect} = require('chai');
 var ecc = require('../ecc');
 var BN = require('bn.js')
 
-/*
+
  describe('FieldElement', function() {
 	var newNum = new ecc.FieldElement(2,3);
-
 	it('constructor with valid args', function() {
 		assert.equal(newNum.num, 2);
 		assert.equal(newNum.prime, 3);
 	})
-	
-	it('constructor with invalide args', function() {
+
+	it('constructor with invalid args', function() {
 		var x = -22;
 		var y = 3;
 		expect(
@@ -22,7 +21,6 @@ var BN = require('bn.js')
 	it('add', function() {
 		a = new ecc.FieldElement(2, 31);
 		b = new ecc.FieldElement(15,31);
-		console.log(a)
 		assert.deepEqual(a.add(b), new ecc.FieldElement(17,31));
 		a = new ecc.FieldElement(17, 31);
 		b = new ecc.FieldElement(21,31);
@@ -109,9 +107,9 @@ describe('Point', function() {
 	})
 })
  
-*/
+
 describe('ECC', function() {
-	/*
+	
 	it('test_on_curve', function () {
 		prime = 223;
 		a = new ecc.FieldElement(0, prime);
@@ -164,18 +162,18 @@ describe('ECC', function() {
 			assert.deepEqual(p1.add(p2), p3)
 		})
 	})
-	*/
+	
 	it('test_rmul', function() {
 		prime = 223;
 		a = new ecc.FieldElement(0, prime);
 		b = new ecc.FieldElement(7, prime);
 		multiplications = [
 			{s:2,x1:192,y1:105,x2:49,y2:71},
-//			{s:2,x1:143,y1:98,x2:64,y2:168},
-//			{s:2,x1:47,y1:71,x2:36,y2:111},
-//			{s:4,x1:47,y1:71,x2:194,y2:51},
-//			{s:8,x1:47,y1:71,x2:116,y2:55},
-//			{s:21,x1:47,y1:71,x2:undefined,y2:undefined},			
+			{s:2,x1:143,y1:98,x2:64,y2:168},
+			{s:2,x1:47,y1:71,x2:36,y2:111},
+			{s:4,x1:47,y1:71,x2:194,y2:51},
+			{s:8,x1:47,y1:71,x2:116,y2:55},
+			{s:21,x1:47,y1:71,x2:undefined,y2:undefined},			
 		] 
 		multiplications.map(obj =>{
 			s = obj.s;
@@ -188,7 +186,6 @@ describe('ECC', function() {
 			x2 = new ecc.FieldElement(obj.x2, prime);
 			y2 = new ecc.FieldElement(obj.y2, prime);
 			p2 = new ecc.Point(x2, y2, a, b);
-			console.log(p1.rmul(s), p2)
 			assert.deepEqual(p1.rmul(s), p2);
 		})
 	})

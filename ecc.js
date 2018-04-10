@@ -3,9 +3,17 @@ var BN = require('bn.js');
 
 class FieldElement {
 	constructor(num, prime) {
-		this.num = BN.isBN(num) && num!= undefined ? num : new BN(num);
-		this.prime = BN.isBN(prime)  && num!= undefined ? prime : new BN(prime);
-		if (this.num.isNeg()) {
+		if (num == undefined) {
+			this.num = undefined
+			this.prime = new BN(prime);
+		} else {
+			this.num = (BN.isBN(num) && num!= undefined) ? num : new BN(num); 
+			this.prime = new BN(prime);
+		}
+		// this.num = num==undefined? undefined: 0;
+		// this.num = (BN.isBN(num) && num!= undefined ? num : new BN(num));
+		//this.prime = BN.isBN(prime)  && num!= undefined ? prime : new BN(prime);
+		if (this.num && this.num.isNeg()) {
 			throw new Error(`Num ${this.num} not in field range 0 to ${this.prime - 1}`); 
 		}
 	}
@@ -15,11 +23,9 @@ class FieldElement {
 	}
 
 	add(fe) {
-//		console.log('fe',fe)
 		if (!this.prime.eq(fe.prime)) {
 			throw new Error('Primes must be the same');
 		}
-		//const num = (this.num + fe.num) % this.prime;
 		const num = this.num.add(fe.num).mod(this.prime);
 		return new FieldElement(num, fe.prime);
 	}
@@ -52,7 +58,7 @@ class FieldElement {
 		} else {
 			num = Math.pow(this.num, f % (this.prime - 1)) % this.prime;
 			const pf = new BN(f).mod(this.prime.sub(new BN(1)))
-//			console.log('this.num', this.num.pow( pf ) )
+
 			num = this.num.pow(pf).mod(this.prime);
 			
 		}
@@ -94,7 +100,8 @@ class Point {
 	}
 
 	add(other) {
-		if (x instanceof FieldElement) {
+		console.log(this.x.num, other.x.num, this.x.num && this.x.num.eq(other.x.num))
+		if (this.x instanceof FieldElement) {
 			if (this.x.num == undefined) {
 				return other;
 			}
@@ -104,7 +111,7 @@ class Point {
 			if (!this.a.num.eq(other.a.num) || !this.b.num.eq(other.b.num)) {
 				throw new Error(`Points (${this}, ${other}) are not on the same curve`)
 			}
-			if (this.x.num != other.x.num) {
+			if (!this.x.num.eq(other.x.num)) {
 				const s = other.y.sub(this.y).div(other.x.sub(this.x));
 
 				x = s.pow(2).sub(this.x).sub(other.x);
@@ -112,19 +119,20 @@ class Point {
 				return new Point(x, y, this.a, this.b);
 
 			}
-			if (this.x.num == other.x.num && this.y.num == other.y.num) {
+			if (this.x.num && this.x.num.eq(other.x.num) && this.y.num.eq(other.y.num)) {
 				const s = (this.x.pow(2).rmul(3).add(this.a)).div(this.y.rmul(2));
 				x = s.pow(2).sub(this.x.rmul(2));
 				y = s.mul(this.x.sub(x)).sub(this.y);
 				return new Point(x, y, this.a, this.b);				
 			}
-			if (this.x.num == other.x.num && this.y.num != other.y.num) {
+			if (this.x.num && this.x.num.eq(other.x.num) && !this.y.num.eq(other.y.num)) {
 				return new Point(new FieldElement(undefined, x.prime),
 				new FieldElement(undefined, x.prime),
 				this.a, this.b
 			)
 			}
 		} else {
+			//Real
 			if (this.x == undefined) {
 				return other;
 			}
@@ -150,15 +158,13 @@ class Point {
 		}
 	}
 	rmul(coefficent) {
-		console.log('x',x, x instanceof FieldElement, x.num)
-		if (x instanceof FieldElement || BN.isBN(x.num)) {
+		if (this.x instanceof FieldElement || BN.isBN(this.x.num)) {
 			x1 = new FieldElement(undefined, this.x.prime);
 			y1 = new FieldElement(undefined, this.x.prime);
-			console.log(x1.num == undefined, x1.num)
-			console.log(x1.num, y1)
 			let product = new Point(x1, y1, this.a, this.b);
 			for (let index = 0; index < coefficent; index++) {
 				product = product.add(this);
+				console.log(index, product)
 			}
 			return product;
 		}
