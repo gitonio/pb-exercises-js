@@ -3,10 +3,10 @@ var BN = require('bn.js');
 
 class FieldElement {
 	constructor(num, prime) {
-		this.num = num;
-		this.prime = prime;
-		if (this.num < 0) {
-			throw new Error(`Num ${this.num} not in field range 0 to ${this.prime - 1}`);
+		this.num = BN.isBN(num) && num!= undefined ? num : new BN(num);
+		this.prime = BN.isBN(prime)  && num!= undefined ? prime : new BN(prime);
+		if (this.num.isNeg()) {
+			throw new Error(`Num ${this.num} not in field range 0 to ${this.prime - 1}`); 
 		}
 	}
 
@@ -15,30 +15,34 @@ class FieldElement {
 	}
 
 	add(fe) {
-		console.log('fe',fe)
-		if (this.prime != fe.prime) {
+//		console.log('fe',fe)
+		if (!this.prime.eq(fe.prime)) {
 			throw new Error('Primes must be the same');
 		}
-		const num = (this.num + fe.num) % this.prime;
+		//const num = (this.num + fe.num) % this.prime;
+		const num = this.num.add(fe.num).mod(this.prime);
 		return new FieldElement(num, fe.prime);
 	}
 	sub(fe) {
-		if (this.prime != fe.prime) {
+		if (!this.prime.eq(fe.prime)) {
 			throw new Error('Primes must be the same');
 		}
 		//https://dev.to/maurobringolf/a-neat-trick-to-compute-modulo-of-negative-numbers-111e
-		const num = (((this.num - fe.num) % this.prime) + this.prime) % this.prime;
+		//const num = (((this.num - fe.num) % this.prime) + this.prime) % this.prime;
+		const num = this.num.sub(fe.num).mod(this.prime).add(this.prime).mod(this.prime);
 		return new FieldElement(num, fe.prime);
 	}
 	mul(fe) {
-		if (this.prime != fe.prime) {
+		if (!this.prime.eq(fe.prime)) {
 			throw new Error('Primes must be the same');
 		}
-		const num = (this.num * fe.num) % this.prime;
+//		const num = (this.num * fe.num) % this.prime;
+		const num = this.num.mul(fe.num).mod(this.prime);
 		return new FieldElement(num, fe.prime);
 	}
 	rmul(f) {
-		const num = (this.num * f) % this.prime;
+		//const num = (this.num * f) % this.prime;
+		const num = this.num.mul(new BN(f)).mod(this.prime);
 		return new FieldElement(num, this.prime);
 	}
 	pow(f) {
@@ -47,11 +51,15 @@ class FieldElement {
 			num = new BN(Math.pow(this.num, -f)).pow(new BN(this.prime - 2)).mod(new BN(this.prime)).toNumber();
 		} else {
 			num = Math.pow(this.num, f % (this.prime - 1)) % this.prime;
+			const pf = new BN(f).mod(this.prime.sub(new BN(1)))
+//			console.log('this.num', this.num.pow( pf ) )
+			num = this.num.pow(pf).mod(this.prime);
+			
 		}
 		return new FieldElement(num, this.prime);
 	}
 	div(fe) {
-		if (this.prime != fe.prime) {
+		if (!this.prime.eq(fe.prime)) {
 			throw new Error('Primes must be the same');
 		}
 		const inv = new BN(fe.num).pow(new BN(this.prime - 2)).mod(new BN(this.prime));
@@ -67,18 +75,11 @@ class Point {
 		this.y = y;
 		this.a = a;
 		this.b = b;
-		console.log('this',this)
 		if (x instanceof FieldElement) {
 			if (this.x.num == undefined) {
 				return
 			}
-			// if (this.y.pow(2).num != this.x.pow(3).add(this.a.mul(this.x)).add(this.b).num) {
-			// 	throw new Error(`(${this.x.num}, ${this.y.num}) is not on the curve1`);
-			// }
-			console.log('this.y',this.y)
-			console.log('left',new BN(this.y.pow(new BN(2)).num).mod(this.x.prime).toString(10) )
-			console.log('right', new BN(this.x.pow(new BN(3)).add(this.a.mul(this.x)).add(this.b).num).mod(this.x.prime).toString(10)  ) 
-			if (this.y.pow(new BN(2)).num != this.x.pow(new BN(3)).add(this.a.mul(this.x)).add(this.b).num) {
+			if ( !this.y.pow(2).num.eq( this.x.pow(3).add(this.a.mul(this.x)).add(this.b).num) ) {
 				throw new Error(`(${this.x.num}, ${this.y.num}) is not on the curve1`);
 			}
 		} else {
@@ -100,7 +101,7 @@ class Point {
 			if (other.x.num == undefined) {
 				return this;
 			}
-			if (this.a.num != other.a.num || this.b.num != other.b.num) {
+			if (!this.a.num.eq(other.a.num) || !this.b.num.eq(other.b.num)) {
 				throw new Error(`Points (${this}, ${other}) are not on the same curve`)
 			}
 			if (this.x.num != other.x.num) {
@@ -149,9 +150,12 @@ class Point {
 		}
 	}
 	rmul(coefficent) {
-		if (x instanceof FieldElement) {
-			x1 = new FieldElement(undefined, prime);
-			y1 = new FieldElement(undefined, prime);
+		console.log('x',x, x instanceof FieldElement, x.num)
+		if (x instanceof FieldElement || BN.isBN(x.num)) {
+			x1 = new FieldElement(undefined, this.x.prime);
+			y1 = new FieldElement(undefined, this.x.prime);
+			console.log(x1.num == undefined, x1.num)
+			console.log(x1.num, y1)
 			let product = new Point(x1, y1, this.a, this.b);
 			for (let index = 0; index < coefficent; index++) {
 				product = product.add(this);
@@ -160,7 +164,8 @@ class Point {
 		}
 	}
 }
-let prime = new BN('1.1579209e+77',10);
+let prime = new BN('fffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f ',16);
+//prime = new BN(223);
 //console.log(prime)
 class S256Field extends FieldElement {
 	
@@ -172,8 +177,8 @@ class S256Field extends FieldElement {
 
 class S256Point extends Point {
 	constructor(x, y) {
-		a = new S256Field(new BN(0));
-		b = new S256Field(new BN(7));
+		let a = new S256Field(new BN(0));
+		let b = new S256Field(new BN(7));
 		if (x instanceof FieldElement){
 			super(x, y, a, b);			
 		} else {

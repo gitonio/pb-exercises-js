@@ -22,6 +22,7 @@ var BN = require('bn.js')
 	it('add', function() {
 		a = new ecc.FieldElement(2, 31);
 		b = new ecc.FieldElement(15,31);
+		console.log(a)
 		assert.deepEqual(a.add(b), new ecc.FieldElement(17,31));
 		a = new ecc.FieldElement(17, 31);
 		b = new ecc.FieldElement(21,31);
@@ -108,9 +109,9 @@ describe('Point', function() {
 	})
 })
  
-
+*/
 describe('ECC', function() {
-	
+	/*
 	it('test_on_curve', function () {
 		prime = 223;
 		a = new ecc.FieldElement(0, prime);
@@ -163,19 +164,19 @@ describe('ECC', function() {
 			assert.deepEqual(p1.add(p2), p3)
 		})
 	})
-	
+	*/
 	it('test_rmul', function() {
 		prime = 223;
 		a = new ecc.FieldElement(0, prime);
 		b = new ecc.FieldElement(7, prime);
 		multiplications = [
 			{s:2,x1:192,y1:105,x2:49,y2:71},
-			{s:2,x1:143,y1:98,x2:64,y2:168},
-			{s:2,x1:47,y1:71,x2:36,y2:111},
-			{s:4,x1:47,y1:71,x2:194,y2:51},
-			{s:8,x1:47,y1:71,x2:116,y2:55},
-			{s:21,x1:47,y1:71,x2:undefined,y2:undefined},			
-		]
+//			{s:2,x1:143,y1:98,x2:64,y2:168},
+//			{s:2,x1:47,y1:71,x2:36,y2:111},
+//			{s:4,x1:47,y1:71,x2:194,y2:51},
+//			{s:8,x1:47,y1:71,x2:116,y2:55},
+//			{s:21,x1:47,y1:71,x2:undefined,y2:undefined},			
+		] 
 		multiplications.map(obj =>{
 			s = obj.s;
 			x1 = new ecc.FieldElement(obj.x1, prime);
@@ -183,23 +184,25 @@ describe('ECC', function() {
 			a = new ecc.FieldElement(0, prime);
 			b = new ecc.FieldElement(7, prime);
 			p1 = new ecc.Point(x1, y1, a, b);
+			
 			x2 = new ecc.FieldElement(obj.x2, prime);
 			y2 = new ecc.FieldElement(obj.y2, prime);
 			p2 = new ecc.Point(x2, y2, a, b);
+			console.log(p1.rmul(s), p2)
 			assert.deepEqual(p1.rmul(s), p2);
 		})
 	})
 })
-*/
+
 describe('S256Test', function() {
 	it('test_order', function() {
 		G = new ecc.S256Point(
-			new BN('0x79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798',16),
-			new BN('0x483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8',16))
-		// G = new ecc.S256Point(
-		// 	new BN(47),
-		// 	new BN(71))
-		console.log('g',G)
+			new BN('79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798', 16),
+			new BN('483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8', 16));
+//		 G = new ecc.S256Point(
+//		 	new BN(192),
+//		 	new BN(105))
+//		console.log('g',G)
 
 		})
 })
