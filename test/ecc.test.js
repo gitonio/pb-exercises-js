@@ -2,7 +2,7 @@ var { assert, expect} = require('chai');
 var ecc = require('../ecc');
 var BN = require('bn.js')
 
-
+/*
  describe('FieldElement', function() {
 	var newNum = new ecc.FieldElement(2,3);
 	it('constructor with valid args', function() {
@@ -71,7 +71,9 @@ var BN = require('bn.js')
 
 })
 
+
 describe('Point', function() {
+	
 	x = -2;
 	y =  4;
 	it('should validate curve', function () {
@@ -106,7 +108,7 @@ describe('Point', function() {
 		assert.deepEqual(a.add(a), b); 
 	})
 })
- 
+
 
 describe('ECC', function() {
 	
@@ -182,7 +184,6 @@ describe('ECC', function() {
 			a = new ecc.FieldElement(0, prime);
 			b = new ecc.FieldElement(7, prime);
 			p1 = new ecc.Point(x1, y1, a, b);
-			
 			x2 = new ecc.FieldElement(obj.x2, prime);
 			y2 = new ecc.FieldElement(obj.y2, prime);
 			p2 = new ecc.Point(x2, y2, a, b);
@@ -191,17 +192,16 @@ describe('ECC', function() {
 	})
 })
 
+*/
 describe('S256Test', function() {
 	it('test_order', function() {
 		G = new ecc.S256Point(
 			new BN('79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798', 16),
-			new BN('483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8', 16));
-//		 G = new ecc.S256Point(
-//		 	new BN(192),
-//		 	new BN(105))
-//		console.log('g',G)
-
-		})
+			new BN('483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8', 16));		
+	
+		N = new BN('FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141', 16);
+		G.rmul(N); 
+	})
 })
 
 
