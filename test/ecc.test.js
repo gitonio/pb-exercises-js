@@ -173,7 +173,7 @@ describe('ECC', function() {
 			{s:2,x1:192,y1:105,x2:49,y2:71},
 			{s:2,x1:143,y1:98,x2:64,y2:168},
 			{s:2,x1:47,y1:71,x2:36,y2:111},
-			{s:4,x1:47,y1:71,x2:194,y2:51},
+			{s:4,x1:47,y1:71,x2:194,y2:51},  
 			{s:8,x1:47,y1:71,x2:116,y2:55},
 			{s:21,x1:47,y1:71,x2:undefined,y2:undefined},			
 		] 
@@ -194,14 +194,57 @@ describe('ECC', function() {
 
 */
 describe('S256Test', function() {
+
 	it('test_order', function() {
+		G = new ecc.S256Point(
+			new BN(47),
+			new BN(71), prime=new BN(223));	
+		R = new ecc.S256Point(
+			new BN(116),
+			new BN(55), prime=new BN(223));	
+		
+	
+		N = new BN('FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141', 16);
+		N = new BN(8); 
+		console.log(G, G.x.num.toString(10), G.y.num.toString(10));
+		nn = G.rmul(N);
+		console.log(nn, nn.x.num.toString(10), nn.y.num.toString(10));
+		assert.equal(nn.x.num.toString(10) , 116); 
+		
+	})
+	
+	it('test_order2', function() {
 		G = new ecc.S256Point(
 			new BN('79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798', 16),
 			new BN('483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8', 16));		
+		//G = new ecc.S256Point(
+		//	new BN(47),
+		//	new BN(71), prime=new BN(223));		
 	
 		N = new BN('FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141', 16);
-		console.log(G.rmul(N)); 
+		//console.log(G, G.x.num.toString(10), G.y.num.toString(10));
+		nn = G.rmul(N);
+		//console.log(nn, nn.x.num.toString(10), nn.y.num.toString(10));
+		assert.isUndefined(nn.num); 
+		
 	})
+
+	it('test_sec', function() {
+		G = new ecc.S256Point(
+			new BN('79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798', 16),
+			new BN('483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8', 16));		
+		const coefficient = new BN(999^3);
+		console.log(coefficient)
+		const uncompressed = new BN('049d5ca49670cbe4c3bfa84c96a8c87df086c6ea6a24ba6b809c9de234496808d56fa15cc7f3d38cda98dee2419f415b7513dde1301f8643cd9245aea7f3f911f9', 16);
+		const compressed = new BN('03a598a8030da6d86c6bc7f2f5144ea549d28211ea58faa70ebf4c1e665c1fe9b5', 16);
+		console.log('pp')
+		point = G.rmul(coefficient);
+		point2 = new ecc.S256Point(point.x.num, point.y.num);
+		console.log('point', point.x.num)
+		console.log('p2', point2);
+		assert.equal(point2.sec(compressed), ecc.parseHexString('03a598a8030da6d86c6bc7f2f5144ea549d28211ea58faa70ebf4c1e665c1fe9b5'))
+	})
+	
 })
 
 

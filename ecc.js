@@ -68,15 +68,11 @@ class FieldElement {
 		if (!this.prime.eq(fe.prime)) {
 			throw new Error('Primes must be the same');
 		}
-		console.log('div', this.num, fe.num, 'this prime', this.prime.toString(10))
-		console.log('div2', this.prime.add(new BN(2)))
 		let red = BN.red(this.prime);
 		let fer = fe.num.toRed(red)
 		//const inv =  fe.num.pow( this.prime.sub(new BN(2)) ).mod(this.prime);
 		const inv = fer.redPow(this.prime.sub(new BN(2))).mod(this.prime)
-		console.log('div inv', inv.fromRed())
 		const num = (new BN(this.num).mul(inv)).mod(new BN(this.prime));
-		console.log('div num', num)
 		return new FieldElement(num, this.prime);
 
 	}
@@ -118,27 +114,30 @@ class Point {
 				throw new Error(`Points (${this}, ${other}) are not on the same curve`)
 			}
 			if (this.x.num && !this.x.num.eq(other.x.num)) {
+				//console.log('ne')
 				const s = other.y.sub(this.y).div(other.x.sub(this.x));
 
-				x = s.pow(2).sub(this.x).sub(other.x);
-				y = s.mul(this.x.sub(x)).sub(this.y);
+				let x = s.pow(2).sub(this.x).sub(other.x);
+				let y = s.mul(this.x.sub(x)).sub(this.y);
+				//console.log('x=x');
 				return new Point(x, y, this.a, this.b);
 
 			}
 			if (this.x.num && this.x.num.eq(other.x.num) && this.y.num.eq(other.y.num)) {
-				console.log(this.x.pow(2).rmul(3).add(this.a))
-				console.log(this.y.rmul(2))
+				//console.log('ae')
 				const s = (this.x.pow(2).rmul(3).add(this.a)).div(this.y.rmul(2));
-				console.log('s', s)
 				let x = s.pow(2).sub(this.x.rmul(2));
 				let y = s.mul(this.x.sub(x)).sub(this.y);
+				//console.log('adding:', this.x.num.toString(10), this.y.num.toString(10));
+				//this.x = x;
+				//this.y = y;
+				//return this;
 				return new Point(x, y, this.a, this.b);				
 			}
 			if (this.x.num && this.x.num.eq(other.x.num) && !this.y.num.eq(other.y.num)) {
 				return new Point(new FieldElement(undefined, x.prime),
 				new FieldElement(undefined, x.prime),
-				this.a, this.b
-			)
+				this.a, this.b)
 			}
 		} else {
 			//Real
@@ -161,6 +160,10 @@ class Point {
 				const s = (3 * Math.pow(this.x, 2) + this.a) / (2 * this.y);
 				x = Math.pow(s, 2) - 2 * this.x;
 				y = s * (this.x - x) - this.y;
+				//this.x = x;
+				//this.y = y;
+				//console.log(this)
+				//return this;
 				return new Point(x, y, this.a, this.b);
 			}
 
@@ -171,19 +174,20 @@ class Point {
 			x1 = new FieldElement(undefined, this.x.prime);
 			y1 = new FieldElement(undefined, this.x.prime);
 			let product = new Point(x1, y1, this.a, this.b);
-			for (let index = 0; index < coefficient; index++) {
+			for (let index = 0; index < coefficient  ; index++) {
 				
 				product = product.add(this);
+
 			}
 			return product;
 		}
 	}
 }
-let prime = new BN('fffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f ',16);
-
+//let prime = new BN('fffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f ',16);
+//let prime = new BN(223);
 class S256Field extends FieldElement {
 	
-	constructor(num) {
+	constructor(num, prime=new BN('fffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f ',16)) {
 		super(num, prime);
 		this.prime = prime;
 	}
@@ -191,43 +195,68 @@ class S256Field extends FieldElement {
 }
 
 class S256Point extends Point {
-	constructor(x, y) {
-		let a = new S256Field(new BN(0));
-		let b = new S256Field(new BN(7));
+	constructor(x, y, prime = new BN('fffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f ',16) ) {
+		let a = new S256Field(new BN(0), prime);
+		let b = new S256Field(new BN(7), prime); 
 		if (x instanceof FieldElement){
 			super(x, y, a, b);			
 		} else {
-			super(new S256Field(x),  new S256Field(y), a, b);
-		}
+			super(new S256Field(x, prime),  new S256Field(y, prime), a, b);
+		} 
 	}
 	
 		rmul(coefficient) {
-		N = new BN('FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141',16);
+		let N = new BN('FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141',16);
+		//N = this.x.prime;
 		const bits = 256;
 		const coe = new BN(coefficient)
-		const coef = coe.mod(N);
-		console.log('coef',coef);
+		let coef = coe.mod(N);
+		console.log('binary:',coef.toString(2))
 		let current = this;
-		console.log('current', current);
 		let result = new S256Point(undefined,undefined);
-		console.log('result', result);
 		for (let index = 0; index < bits; index++) {
-			console.log(index);
-			if (coef & 1) {
-				console.log('inif');
+			//console.log('coef:',coef.toString(2), index)
+			//if (coef.and( new BN(1) )) {
+			if (coef & 1) {	
 				result = result.add(current);
+				//console.log('result:', result);
 			}
-			console.log('curradd')
 			current = current.add(current);
-			console.log('current2', current)
-			coef.shrn(1);
+			//coef.shrn(1);
+			coef >>= 1;
 		}
+		//np = new S256Point(new S256Field(result.x) , new S256Field(result.y) );
+		console.log('exit:', result.a);
+		let nx = new S256Field(result.x.num, result.a.prime);
+		let ny = new S256Field(result.y.num, result.a.prime);
+		let na = new S256Field(new BN(0), result.a.prime);
+		let nb = new S256Field(new BN(7), result.a.prime);
+		//let np = new S256Point(nx, ny, na, nb);
+		//return new S256Point(new S256Field(result.x.num, result.x.prime) , new S256Field(result.y.num, result.y.prime) , result.a, result.b);
+		return result
 		
 	}
+	
+	sec(compressed) {
+		return this.x.num.toArray();
+	}
+}
 
+
+
+function parseHexString(str) { 
+    var result = [];
+    while (str.length >= 8) { 
+        result.push(parseInt(str.substring(0, 8), 16));
+
+        str = str.substring(8, str.length);
+    }
+
+    return result;
 }
 
 module.exports.FieldElement = FieldElement;
 module.exports.Point = Point;
 module.exports.S256Field = S256Field;
 module.exports.S256Point = S256Point;
+module.exports.parseHexString = parseHexString;
