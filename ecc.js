@@ -225,15 +225,14 @@ class S256Point extends Point {
 			//coef.shrn(1);
 			coef >>= 1;
 		}
-		//np = new S256Point(new S256Field(result.x) , new S256Field(result.y) );
 		console.log('exit:', result.a);
 		let nx = new S256Field(result.x.num, result.a.prime);
 		let ny = new S256Field(result.y.num, result.a.prime);
 		let na = new S256Field(new BN(0), result.a.prime);
 		let nb = new S256Field(new BN(7), result.a.prime);
 		//let np = new S256Point(nx, ny, na, nb);
-		//return new S256Point(new S256Field(result.x.num, result.x.prime) , new S256Field(result.y.num, result.y.prime) , result.a, result.b);
-		return result
+		return new S256Point(new S256Field(result.x.num, result.x.prime) , new S256Field(result.y.num, result.y.prime) , result.a.prime);
+		//return result
 		
 	}
 	

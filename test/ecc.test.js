@@ -2,7 +2,7 @@ var { assert, expect} = require('chai');
 var ecc = require('../ecc');
 var BN = require('bn.js')
 
-/*
+
  describe('FieldElement', function() {
 	var newNum = new ecc.FieldElement(2,3);
 	it('constructor with valid args', function() {
@@ -192,7 +192,7 @@ describe('ECC', function() {
 	})
 })
 
-*/
+
 describe('S256Test', function() {
 
 	it('test_order', function() {
@@ -239,10 +239,10 @@ describe('S256Test', function() {
 		const compressed = new BN('03a598a8030da6d86c6bc7f2f5144ea549d28211ea58faa70ebf4c1e665c1fe9b5', 16);
 		console.log('pp')
 		point = G.rmul(coefficient);
-		point2 = new ecc.S256Point(point.x.num, point.y.num);
-		console.log('point', point.x.num)
-		console.log('p2', point2);
-		assert.equal(point2.sec(compressed), ecc.parseHexString('03a598a8030da6d86c6bc7f2f5144ea549d28211ea58faa70ebf4c1e665c1fe9b5'))
+		//point2 = new ecc.S256Point(point.x.num, point.y.num);
+		//console.log('point', point.x.num)
+		//console.log('p2', point2);
+		assert.equal(point.sec(compressed), ecc.parseHexString('03a598a8030da6d86c6bc7f2f5144ea549d28211ea58faa70ebf4c1e665c1fe9b5'))
 	})
 	
 })
