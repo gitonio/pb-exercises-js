@@ -70,9 +70,12 @@ class FieldElement {
 		}
 		console.log('div', this.num, fe.num, 'this prime', this.prime.toString(10))
 		console.log('div2', this.prime.add(new BN(2)))
-		const inv =  fe.num.pow( this.prime.sub(new BN(2)) ).mod(this.prime);
-		console.log('div inv', inv)
-		const num = (new BN(this.num).mul(inv)).mod(new BN(this.prime)).toNumber();
+		let red = BN.red(this.prime);
+		let fer = fe.num.toRed(red)
+		//const inv =  fe.num.pow( this.prime.sub(new BN(2)) ).mod(this.prime);
+		const inv = fer.redPow(this.prime.sub(new BN(2))).mod(this.prime)
+		console.log('div inv', inv.fromRed())
+		const num = (new BN(this.num).mul(inv)).mod(new BN(this.prime));
 		console.log('div num', num)
 		return new FieldElement(num, this.prime);
 
@@ -126,9 +129,9 @@ class Point {
 				console.log(this.x.pow(2).rmul(3).add(this.a))
 				console.log(this.y.rmul(2))
 				const s = (this.x.pow(2).rmul(3).add(this.a)).div(this.y.rmul(2));
-				consoloe.log('s', s)
-				x = s.pow(2).sub(this.x.rmul(2));
-				y = s.mul(this.x.sub(x)).sub(this.y);
+				console.log('s', s)
+				let x = s.pow(2).sub(this.x.rmul(2));
+				let y = s.mul(this.x.sub(x)).sub(this.y);
 				return new Point(x, y, this.a, this.b);				
 			}
 			if (this.x.num && this.x.num.eq(other.x.num) && !this.y.num.eq(other.y.num)) {

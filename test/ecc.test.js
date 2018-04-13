@@ -200,7 +200,7 @@ describe('S256Test', function() {
 			new BN('483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8', 16));		
 	
 		N = new BN('FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141', 16);
-		G.rmul(N); 
+		console.log(G.rmul(N)); 
 	})
 })
 
