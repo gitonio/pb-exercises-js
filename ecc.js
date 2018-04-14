@@ -237,7 +237,20 @@ class S256Point extends Point {
 	}
 	
 	sec(compressed) {
-		return this.x.num.toArray();
+		if (compressed) {
+			let na = this.x.num.toArray('be')
+			if (this.y.num.mod(new BN(2)).eq(0)) {
+				na.unshift(2)
+				return na;
+			} else {
+				na.unshift(3)
+				return na;
+
+			}
+		}
+		let na = this.x.num.toArray('be').concat(this.y.num.toArray('be'))
+		na.unshift(4)
+		return na;
 	}
 }
 
