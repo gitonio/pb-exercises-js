@@ -1,5 +1,9 @@
+var helper = require('./helper');
+
 //https://dev.to/maurobringolf/a-neat-trick-to-compute-modulo-of-negative-numbers-111e
 var BN = require('bn.js');
+var hash = require('hash.js');
+var helper = require('./helper')
 
 class FieldElement {
 	constructor(num, prime) {
@@ -7,14 +11,14 @@ class FieldElement {
 			this.num = undefined
 			this.prime = new BN(prime);
 		} else {
-			this.num = (BN.isBN(num) && num!= undefined) ? num : new BN(num); 
+			this.num = (BN.isBN(num) && num != undefined) ? num : new BN(num);
 			this.prime = new BN(prime);
 		}
 		// this.num = num==undefined? undefined: 0;
 		// this.num = (BN.isBN(num) && num!= undefined ? num : new BN(num));
 		//this.prime = BN.isBN(prime)  && num!= undefined ? prime : new BN(prime);
 		if (this.num && this.num.isNeg()) {
-			throw new Error(`Num ${this.num} not in field range 0 to ${this.prime - 1}`); 
+			throw new Error(`Num ${this.num} not in field range 0 to ${this.prime - 1}`);
 		}
 	}
 
@@ -42,7 +46,7 @@ class FieldElement {
 		if (!this.prime.eq(fe.prime)) {
 			throw new Error('Primes must be the same');
 		}
-//		const num = (this.num * fe.num) % this.prime;
+		//		const num = (this.num * fe.num) % this.prime;
 		const num = this.num.mul(fe.num).mod(this.prime);
 		return new FieldElement(num, fe.prime);
 	}
@@ -60,7 +64,7 @@ class FieldElement {
 			const pf = new BN(f).mod(this.prime.sub(new BN(1)))
 
 			num = this.num.pow(pf).mod(this.prime);
-			
+
 		}
 		return new FieldElement(num, this.prime);
 	}
@@ -88,7 +92,7 @@ class Point {
 			if (this.x.num == undefined) {
 				return
 			}
-			if ( !this.y.pow(2).num.eq( this.x.pow(3).add(this.a.mul(this.x)).add(this.b).num) ) {
+			if (!this.y.pow(2).num.eq(this.x.pow(3).add(this.a.mul(this.x)).add(this.b).num)) {
 				throw new Error(`(${this.x.num}, ${this.y.num}) is not on the curve1`);
 			}
 		} else {
@@ -107,7 +111,7 @@ class Point {
 			if (this.x.num == undefined) {
 				return other;
 			}
-			if (other.x.num  == undefined) {
+			if (other.x.num == undefined) {
 				return this;
 			}
 			if (!this.a.num.eq(other.a.num) || !this.b.num.eq(other.b.num)) {
@@ -132,12 +136,12 @@ class Point {
 				//this.x = x;
 				//this.y = y;
 				//return this;
-				return new Point(x, y, this.a, this.b);				
+				return new Point(x, y, this.a, this.b);
 			}
 			if (this.x.num && this.x.num.eq(other.x.num) && !this.y.num.eq(other.y.num)) {
 				return new Point(new FieldElement(undefined, x.prime),
-				new FieldElement(undefined, x.prime),
-				this.a, this.b)
+					new FieldElement(undefined, x.prime),
+					this.a, this.b)
 			}
 		} else {
 			//Real
@@ -174,8 +178,8 @@ class Point {
 			x1 = new FieldElement(undefined, this.x.prime);
 			y1 = new FieldElement(undefined, this.x.prime);
 			let product = new Point(x1, y1, this.a, this.b);
-			for (let index = 0; index < coefficient  ; index++) {
-				
+			for (let index = 0; index < coefficient; index++) {
+
 				product = product.add(this);
 
 			}
@@ -186,85 +190,115 @@ class Point {
 //let prime = new BN('fffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f ',16);
 //let prime = new BN(223);
 class S256Field extends FieldElement {
-	
-	constructor(num, prime=new BN('fffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f ',16)) {
+
+	constructor(num, prime = new BN('fffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f ', 16)) {
 		super(num, prime);
 		this.prime = prime;
 	}
-	
+
 }
 
 class S256Point extends Point {
-	constructor(x, y, prime = new BN('fffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f ',16) ) {
+	constructor(x, y, prime = new BN('fffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f ', 16)) {
 		let a = new S256Field(new BN(0), prime);
-		let b = new S256Field(new BN(7), prime); 
-		if (x instanceof FieldElement){
-			super(x, y, a, b);			
+		let b = new S256Field(new BN(7), prime);
+		if (x instanceof FieldElement) {
+			super(x, y, a, b);
 		} else {
-			super(new S256Field(x, prime),  new S256Field(y, prime), a, b);
-		} 
+			super(new S256Field(x, prime), new S256Field(y, prime), a, b);
+		}
 	}
-	
-		rmul(coefficient) {
-		let N = new BN('FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141',16);
+
+	rmul(coefficient) {
+		let N = new BN('FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141', 16);
 		//N = this.x.prime;
 		const bits = 256;
-		const coe = new BN(coefficient)
+		//const coe = new BN(coefficient)
+		const coe = BN.isBN(coefficient) ? coefficient : new BN(coefficient);
 		let coef = coe.mod(N);
-		console.log('binary:',coef.toString(2))
 		let current = this;
-		let result = new S256Point(undefined,undefined);
+		let result = new S256Point(undefined, undefined);
 		for (let index = 0; index < bits; index++) {
 			//console.log('coef:',coef.toString(2), index)
-			//if (coef.and( new BN(1) )) {
-			if (coef & 1) {	
+			if (coef.andln(1)) {
+				//if (coef & 1) {
 				result = result.add(current);
 				//console.log('result:', result);
 			}
 			current = current.add(current);
-			//coef.shrn(1);
-			coef >>= 1;
+			//coef = coef.shrn(1);
+			coef.ishrn(1);
+			//coef >>= 1;
 		}
-		console.log('exit:', result.a);
+		//console.log('exit:', result);
 		let nx = new S256Field(result.x.num, result.a.prime);
 		let ny = new S256Field(result.y.num, result.a.prime);
 		let na = new S256Field(new BN(0), result.a.prime);
 		let nb = new S256Field(new BN(7), result.a.prime);
 		//let np = new S256Point(nx, ny, na, nb);
-		return new S256Point(new S256Field(result.x.num, result.x.prime) , new S256Field(result.y.num, result.y.prime) , result.a.prime);
+		return new S256Point(new S256Field(result.x.num, result.x.prime), new S256Field(result.y.num, result.y.prime), result.a.prime);
 		//return result
-		
+
 	}
-	
+
 	sec(compressed) {
 		if (compressed) {
-			let na = this.x.num.toArray('be')
-			if (this.y.num.mod(new BN(2)).eq(0)) {
-				na.unshift(2)
-				return na;
+			let ba = this.x.num.toBuffer('be')
+			if (this.y.num.mod(new BN(2)).toString()==0) {
+				let prefix = Buffer.from([2])
+				let arr = [prefix, ba]
+				var buf = Buffer.concat(arr)
+				return buf;
 			} else {
-				na.unshift(3)
-				return na;
 
+				let prefix = Buffer.from([3])
+				let arr = [prefix, ba]
+				var buf = Buffer.concat(arr)
+				return buf;
 			}
-		}
-		let na = this.x.num.toArray('be').concat(this.y.num.toArray('be'))
-		na.unshift(4)
+		} else {
+			let prefix = Buffer.from([4]);
+			let nax = this.x.num.toBuffer('be')
+			let nay = this.y.num.toBuffer('be')
+			let arr = [prefix, nax, nay]
+			return Buffer.concat(arr)
 		return na;
+			
+		}
+	}
+
+	address(compressed, testnet) {
+		const sec = this.sec(compressed);
+		const h160 = new BN(helper.hash160(sec), 16).toBuffer('be');
+		if (testnet) {
+			const prefix = Buffer.from([111]);
+			let arr = [prefix, h160]
+			const raw = Buffer.concat(arr);
+			const checksum = helper.doubleSha256(raw).slice(0, 8)
+			const address = helper.encodeBase58(raw.toString('hex') + checksum)
+			return address;
+		} else {
+			let prefix = Buffer.from([0])
+			let arr = [prefix, h160]
+			const raw = Buffer.concat(arr);
+			const checksum = helper.doubleSha256(raw).slice(0, 8)
+			const address = helper.encodeBase58(raw.toString('hex') + checksum)
+			return address;
+		}
 	}
 }
 
 
 
-function parseHexString(str) { 
-    var result = [];
-    while (str.length >= 8) { 
-        result.push(parseInt(str.substring(0, 8), 16));
+function parseHexString(str) {
+	var result = [];
+	while (str.length >= 8) {
+		result.push(parseInt(str.substring(0, 8), 16));
 
-        str = str.substring(8, str.length);
-    }
+		str = str.substring(8, str.length);
+	}
 
-    return result;
+	return result;
 }
 
 module.exports.FieldElement = FieldElement;

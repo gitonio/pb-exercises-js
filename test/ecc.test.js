@@ -193,6 +193,7 @@ describe('ECC', function() {
 })
 
 
+
 describe('S256Test', function() {
 
 	it('test_order', function() {
@@ -206,9 +207,7 @@ describe('S256Test', function() {
 	
 		N = new BN('FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141', 16);
 		N = new BN(8); 
-		console.log(G, G.x.num.toString(10), G.y.num.toString(10));
 		nn = G.rmul(N);
-		console.log(nn, nn.x.num.toString(10), nn.y.num.toString(10));
 		assert.equal(nn.x.num.toString(10) , 116); 
 		
 	})
@@ -232,21 +231,20 @@ describe('S256Test', function() {
 	it('test_pubpoint', function() {
 		G = new ecc.S256Point(
 			new BN('79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798', 16),
-			new BN('483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8', 16));		
+			new BN('483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8', 16));	
+		let secret1 = Math.pow(2,128);	
 		points = [
 			{secret: 7, x: '5cbdf0646e5db4eaa398f365f2ea7a0e3d419b7e0330e39ce92bddedcac4f9bc', y: '6aebca40ba255960a3178d6d861a54dba813d0b813fde7b5a5082628087264da'},
-            //{secret:1485, x: 'c982196a7466fbbbb0e27a940b6af926c1a74d5ad07128c82824a11b5398afda', y: '7a91f9eae64438afb9ce6448a1c133db2d8fb9254e4546b6f001637d50901f55'},
-            //{secret:Math.pow(2,128), x: '8f68b9d2f63b5f339239c1ad981f162ee88c5678723ea3351b7b444c9ec4c0da', y: '662a9f2dba063986de1d90c2b6be215dbbea2cfe95510bfdf23cbf79501fff82'},
-            //{secret:Math.pow(2,240)+Math.pow(2,31), x: '9577ff57c8234558f293df502ca4f09cbc65a6572c842b39b366f21717945116', y: '10b49c67fa9365ad7b90dab070be339a1daf9052373ec30ffae4f72d5e66d053'}
+            {secret:1485, x: 'c982196a7466fbbbb0e27a940b6af926c1a74d5ad07128c82824a11b5398afda', y: '7a91f9eae64438afb9ce6448a1c133db2d8fb9254e4546b6f001637d50901f55'},
+            {secret: '340282366920938463463374607431768211456', x: '8f68b9d2f63b5f339239c1ad981f162ee88c5678723ea3351b7b444c9ec4c0da', y: '662a9f2dba063986de1d90c2b6be215dbbea2cfe95510bfdf23cbf79501fff82'},
+            {secret: '1766847064778384329583297500742918515827483896875618958121606203440103424', x: '9577ff57c8234558f293df502ca4f09cbc65a6572c842b39b366f21717945116', y: '10b49c67fa9365ad7b90dab070be339a1daf9052373ec30ffae4f72d5e66d053'}
 
 		]
 		points.map(obj => {
 			point = new ecc.S256Point(new BN(obj.x, 16), new BN(obj.y, 16));
-			console.log(point)
-			let res = G.rmul(obj.secret);
-			console.log(res, obj.secret)
-			console.log(res.x.prime.toString() == point.x.prime.toString())
-			assert.deepEqual(res.x,point.x)
+			let res = G.rmul(new BN(obj.secret));
+			assert.equal(res.x.num.toString(16), point.x.num.toString(16))
+			//assert.deepEqual(res.x.num, point.x.num)
 		})
 	})
 
@@ -254,12 +252,28 @@ describe('S256Test', function() {
 		G = new ecc.S256Point(
 			new BN('79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798', 16),
 			new BN('483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8', 16));		
-		const coefficient = new BN(Math.pow(999,3));
-		const uncompressed = new BN('049d5ca49670cbe4c3bfa84c96a8c87df086c6ea6a24ba6b809c9de234496808d56fa15cc7f3d38cda98dee2419f415b7513dde1301f8643cd9245aea7f3f911f9', 16);
-		const compressed = new BN('039d5ca49670cbe4c3bfa84c96a8c87df086c6ea6a24ba6b809c9de234496808d5', 16);
+
+		let coefficient = new BN(Math.pow(999,3));
+		let uncompressed = new BN('049d5ca49670cbe4c3bfa84c96a8c87df086c6ea6a24ba6b809c9de234496808d56fa15cc7f3d38cda98dee2419f415b7513dde1301f8643cd9245aea7f3f911f9', 16);
+		let compressed = new BN('039d5ca49670cbe4c3bfa84c96a8c87df086c6ea6a24ba6b809c9de234496808d5', 16);
 		point = G.rmul(coefficient);
-		assert.deepEqual(point.sec(), uncompressed.toArray())
-		assert.deepEqual(point.sec(true), compressed.toArray())
+		assert.deepEqual(point.sec(), uncompressed.toBuffer('be'))
+		assert.deepEqual(point.sec(true), compressed.toBuffer('be'))
+
+		coefficient = new BN(123);
+		uncompressed = new BN('04a598a8030da6d86c6bc7f2f5144ea549d28211ea58faa70ebf4c1e665c1fe9b5204b5d6f84822c307e4b4a7140737aec23fc63b65b35f86a10026dbd2d864e6b', 16);
+		compressed = new BN('03a598a8030da6d86c6bc7f2f5144ea549d28211ea58faa70ebf4c1e665c1fe9b5', 16);
+		point = G.rmul(coefficient);
+		assert.deepEqual(point.sec(), uncompressed.toBuffer('be'))
+		assert.deepEqual(point.sec(true), compressed.toBuffer('be'))
+		
+		coefficient = new BN(42424242);
+		uncompressed = new BN('04aee2e7d843f7430097859e2bc603abcc3274ff8169c1a469fee0f20614066f8e21ec53f40efac47ac1c5211b2123527e0e9b57ede790c4da1e72c91fb7da54a3', 16);
+		compressed = new BN('03aee2e7d843f7430097859e2bc603abcc3274ff8169c1a469fee0f20614066f8e', 16);
+		point = G.rmul(coefficient);
+		assert.deepEqual(point.sec(), uncompressed.toBuffer('be'))
+		assert.deepEqual(point.sec(true), compressed.toBuffer('be'))
+
 	})
 	
 })
@@ -269,3 +283,63 @@ describe('S256Test', function() {
 
 
 
+describe('test_address', function(){
+		G = new ecc.S256Point(
+			new BN('79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798', 16),
+			new BN('483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8', 16));	
+				
+			
+		it('mainnet_address', function () {
+			secret = Math.pow(888,3);
+			point = G.rmul(secret);
+			mainnetAddress = '148dY81A9BmdpMhvYEVznrM45kWN32vSCN';
+			assert.deepEqual(
+				point.address(true, false), mainnetAddress
+			)
+		})
+		it('testnet_address', function () {
+			secret = Math.pow(888,3);
+			point = G.rmul(secret);
+			testnetAddress = 'mieaqB68xDCtbUBYFoUNcmZNwk74xcBfTP';
+			assert.deepEqual(
+				point.address(true, true), testnetAddress
+			)
+		})
+		
+		it('mainnet_address_321', function () {
+			secret = 321;
+			point = G.rmul(secret);
+			mainnetAddress = '1S6g2xBJSED7Qr9CYZib5f4PYVhHZiVfj';
+			assert.deepEqual(
+				point.address(false, false), mainnetAddress
+			)
+		})
+		
+		it('testnet_address_321', function () {
+			secret = 321;
+			point = G.rmul(secret);
+			testnetAddress = 'mfx3y63A7TfTtXKkv7Y6QzsPFY6QCBCXiP';
+			assert.deepEqual(
+				point.address(false, true), testnetAddress
+			)
+		})
+		
+		it('mainnet_address_42', function () {
+			secret = 4242424242;
+			point = G.rmul(secret);
+			mainnetAddress = '1226JSptcStqn4Yq9aAmNXdwdc2ixuH9nb';
+			assert.deepEqual(
+				point.address(false, false), mainnetAddress
+			)
+		})
+		
+		it('testnet_address_42', function () {
+			secret = 4242424242;
+			point = G.rmul(secret);
+			testnetAddress = 'mgY3bVusRUL6ZB2Ss999CSrGVbdRwVpM8s';
+			assert.deepEqual(
+				point.address(false, true), testnetAddress
+			)
+		})
+		
+	})
