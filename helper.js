@@ -49,6 +49,17 @@ function encodeBase58(s) {
     }
     return result.join('');
 }
+
+function strToBytes(s, encoding='ascii') {
+    return Buffer.from(s, encoding);
+}
+
+function bytesToString(b, encoding='ascii') {
+    console.log('bb', b.toString('hex'))
+    return b.toString(encoding);
+}
 module.exports.hash160 = hash160;
 module.exports.doubleSha256 = doubleSha256;
 module.exports.encodeBase58 = encodeBase58;
+module.exports.strToBytes = strToBytes;
+module.exports.bytesToString = bytesToString;

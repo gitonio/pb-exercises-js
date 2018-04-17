@@ -62,6 +62,7 @@ console.log(nn)	//<BN: 68656c6c6f20776f726c64>
 
 console.log(nn.toString(10))  //126207244316550804821666916
 console.log(nn.toString(16)) //68656c6c6f20776f726c64
+console.log('nn', nn.toString('hex'))
 var nb = nn.toBuffer('be');
 var prefix = Buffer.from([0])
 console.log(nb);
