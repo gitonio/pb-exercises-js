@@ -2,7 +2,7 @@ var { assert, expect} = require('chai');
 var ecc = require('../ecc');
 var BN = require('bn.js')
 
-
+/*
  describe('FieldElement', function() {
 	var newNum = new ecc.FieldElement(2,3);
 	it('constructor with valid args', function() {
@@ -281,7 +281,7 @@ describe('S256Test', function() {
 
 
 
-
+*/
 
 describe('test_address', function(){
 		G = new ecc.S256Point(
@@ -297,6 +297,9 @@ describe('test_address', function(){
 				point.address(true, false), mainnetAddress
 			)
 		})
+		
+/*		
+		
 		it('testnet_address', function () {
 			secret = Math.pow(888,3);
 			point = G.rmul(secret);
@@ -342,4 +345,6 @@ describe('test_address', function(){
 			)
 		})
 		
-	})
+*/
+		
+})

@@ -70,3 +70,12 @@ console.log(nb.toString());
 var arr = [prefix, nb];
 console.log(arr);
 console.log(Buffer.concat(arr));
+
+console.log(new BN('002259c9cc3016e4ec0109b15b09e752ae5a08a51fe924106f', 16))
+console.log(new BN('2259c9cc3016e4ec0109b15b09e752ae5a08a51fe924106f', 16))
+
+
+
+
+
+

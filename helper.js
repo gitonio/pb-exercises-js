@@ -4,21 +4,23 @@ var BN = require('bn.js');
 BASE58_ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
 
 function hash160(s) {
-    let sha = new BN(hash.sha256().update(s).digest('hex'), 16).toBuffer('be');
+	const sha = Buffer.from(hash.sha256().update(s).digest('hex'),'hex');
     return hash.ripemd160().update(sha).digest('hex');
 }
 
 function doubleSha256(s) {
-    let sha1 = new BN(hash.sha256().update(s).digest('hex'), 16).toBuffer('be')
+    let sha1 = Buffer.from(hash.sha256().update(s).digest('hex'), 'hex');
     return hash.sha256().update(sha1).digest('hex');
 }
 
 function encodeBase58(s) {
+	console.log('s',s)
     let b = new BN(s,16);
+	
     const base = new BN(58);
     let bmod;
     let count = 0;
-    //console.log('b', b.toBuffer('be'))
+    console.log('b', b.toBuffer('be'))
     let bf = b.toBuffer('be')
     //console.log('bf:',bf)
     for (let index = 0; index < Buffer.byteLength(s)/2; index=index+2) {
