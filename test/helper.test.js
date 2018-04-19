@@ -55,7 +55,7 @@ describe('int to little endian', function () {
 describe('test_base58', function() {
 	const addr = 'mnrVtF8DWjMu839VW3rBfgYaAfKk8983Xf';
 	const h160 = helper.decodeBase58(addr).toString('hex');
-	
+	console.log('ds', helper.doubleSha256('6f507b27411ccf7f16f10297de6cef3f291623eddf'));
 	console.log(h160)
 	it('b58', function() {
 		assert.equal(h160,'507b27411ccf7f16f10297de6cef3f291623eddf');
