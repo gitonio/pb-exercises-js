@@ -42,14 +42,12 @@ describe('little endian to int', function () {
 
 describe('int to little endian', function () {
 	let n = 1;
-	let buf = helper.intToLittleEndian(n,4);
+	let buf = helper.intToLittleEndian(n,2);
 	want = Buffer.from([1]);
-	//buf.writeInt8(1);
 	console.log(buf);
 	it('le', function () {
 		assert.deepEqual(buf, want)
 	})
-	//let want = 
 })
 
 describe('test_base58', function() {

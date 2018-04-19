@@ -82,8 +82,8 @@ function littleEndianToInt(b) {
 
 function intToLittleEndian(n, length) {
 		const buf = Buffer.allocUnsafe(length);
-		console.log(buf.writeInt16LE(n));
-		return buf.writeInt16LE(n);
+		console.log('buf',buf.writeInt16LE(0));
+		return buf.writeInt16LE(0);
 
 }
 
