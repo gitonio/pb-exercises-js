@@ -14,13 +14,11 @@ function doubleSha256(s) {
 }
 
 function encodeBase58(s) {
-	console.log('s',s)
     let b = new BN(s,16);
 	
     const base = new BN(58);
     let bmod;
     let count = 0;
-    console.log('b', b.toBuffer('be'))
     let bf = b.toBuffer('be')
     //console.log('bf:',bf)
     for (let index = 0; index < Buffer.byteLength(s)/2; index=index+2) {
@@ -47,19 +45,62 @@ function encodeBase58(s) {
     if (prefix > 0) {
         result.unshift(prefix)
     }
+	console.log('encode', result.join(''));
     return result.join('');
 }
+
+function encodeBase58Checksum(s) {
+	console.log('dds', s + doubleSha256(s).slice(0,4))
+	return encodeBase58(s + doubleSha256(s).slice(0,3));
+}
+
+function decodeBase58(s) {
+	let num = new BN(0);
+	const base = new BN(58);
+	let sb = Buffer.from(s, 'ascii');
+	let ba = Buffer.from(BASE58_ALPHABET, 'ascii');
+	console.log('ba', ba);
+	console.log('sb', sb, sb.length);
+	for (let index = 0; index < sb.length; index++) {
+		num.imul(base); 
+		num.iadd(new BN(ba.indexOf(sb[index])));   
+	}
+	console.log('num',num.toString(10));
+	//let combined = num.readUInt32BE(0); 
+	let combined = new BN(num).toBuffer('be'); 
+	console.log('combined', combined)
+	console.log('combined', combined.slice(0,Buffer.byteLength(combined)-4))
+	
+	return combined.slice(1,Buffer.byteLength(combined)-4);
+}
+
 
 function strToBytes(s, encoding='ascii') {
     return Buffer.from(s, encoding);
 }
 
 function bytesToString(b, encoding='ascii') {
-    console.log('bb', b.toString('hex'))
     return b.toString(encoding);
 }
+
+function littleEndianToInt(b) {
+	b.toString("hex")
+}
+
+function intToLittleEndian(n, length) {
+		const buf = Buffer.allocUnsafe(length);
+		console.log(buf.writeInt16LE(n));
+		return buf.writeInt16LE(n);
+
+}
+
+
 module.exports.hash160 = hash160;
 module.exports.doubleSha256 = doubleSha256;
 module.exports.encodeBase58 = encodeBase58;
+module.exports.encodeBase58Checksum = encodeBase58Checksum;
+module.exports.decodeBase58 = decodeBase58;
 module.exports.strToBytes = strToBytes;
 module.exports.bytesToString = bytesToString;
+module.exports.littleEndianToInt = littleEndianToInt;
+module.exports.intToLittleEndian = intToLittleEndian;

@@ -281,7 +281,6 @@ class S256Point extends Point {
 			let prefix = Buffer.from([0])
 			let arr = [prefix, h160]
 			const raw = Buffer.concat(arr);
-			console.log('raw', raw);
 			const checksum = helper.doubleSha256(raw).slice(0, 8)
 			const address = helper.encodeBase58(raw.toString('hex') + checksum)
 			return address;
