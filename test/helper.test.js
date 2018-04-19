@@ -29,13 +29,13 @@ describe('little endian to int', function () {
 		let bytes = helper.strToBytes('99c3980000000000', 'hex')
 		
 		let want = 10011545
-		it('le', function() {
+		it('le1', function() {
 			assert.equal(bytes.readInt32LE(), want)			
 		})
 		
 		bytes = helper.strToBytes('a135ef0100000000', 'hex')
 		want = 32454049
-		it('le', function() {
+		it('le2', function() {
 			assert.equal(bytes.readInt32LE(), want)			
 		})
 })
@@ -55,13 +55,10 @@ describe('int to little endian', function () {
 describe('test_base58', function() {
 	const addr = 'mnrVtF8DWjMu839VW3rBfgYaAfKk8983Xf';
 	const h160 = helper.decodeBase58(addr).toString('hex');
-	console.log('ds', helper.doubleSha256('6f507b27411ccf7f16f10297de6cef3f291623eddf'));
-	console.log(h160)
 	it('b58', function() {
 		assert.equal(h160,'507b27411ccf7f16f10297de6cef3f291623eddf');
 	})
 	let got = helper.encodeBase58Checksum('6f507b27411ccf7f16f10297de6cef3f291623eddf');
-	console.log('b', helper.encodeBase58('6f507b27411ccf7f16f10297de6cef3f291623eddf'));
 	it('b582', function() {
 		assert.equal(got, addr);
 	})
