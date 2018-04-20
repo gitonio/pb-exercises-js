@@ -360,3 +360,12 @@ describe ('signature', function() {
 		})
 	})
 })
+
+describe('PrivateKeyTest', function() {
+	it('test_sign', function() {
+		pk = new ecc.PrivateKey(22);
+		z = 22;
+		sig = pk.sign(z);
+		assert.ok(pk.point.verify(z,sig));
+	})
+})

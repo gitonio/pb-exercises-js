@@ -5,6 +5,8 @@ var BN = require('bn.js');
 var hash = require('hash.js');
 var helper = require('./helper')
 
+
+
 class FieldElement {
 	constructor(num, prime) {
 		if (num == undefined) {
@@ -286,6 +288,24 @@ class S256Point extends Point {
 			return address;
 		}
 	}
+	
+	verify(z, sig) {
+		const N = new BN('FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141', 16);
+		const G = new S256Point(
+			new BN('79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798', 16),
+			new BN('483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8', 16));	
+
+		var red = BN.red(N)
+		
+		let reds = sig.s.toRed(red)
+		let inv_reds = reds.redPow(N.subn(2))
+		let s_inv = inv_reds.fromRed()
+		
+		let u = s_inv.muln(z).mod(N);
+		let v = sig.r.mul(s_inv).mod(N);
+		let total = G.rmul(u).add(this.rmul(v))
+		return total.x.num.eq(sig.r);
+	}
 }
 
 class Signature {
@@ -347,6 +367,36 @@ class Signature {
 	}
 }
 
+class PrivateKey {
+	
+	constructor(secret) {
+		this.secret = secret;
+		this.G = new S256Point(
+			new BN('79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798', 16),
+			new BN('483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8', 16));	
+		this.N = new BN('FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141', 16);
+
+		this.point = G.rmul(secret);
+	}
+	
+	sign(z) {
+		z = new BN(z)
+		let two = new BN(2);
+		var red = BN.red(this.N)
+		var k = new BN('400', 10);
+		let redk = k.toRed(red)
+		let k_inv_red = redk.redPow(this.N.subn(2))
+		let k_inv = k_inv_red.fromRed()
+
+		const r = G.rmul(k).x.num;
+		let s = r.muln(this.secret).add(z).mul(k_inv).mod(this.N);
+		if(s.gt(this.N.divRound(two))) {
+			s = this.N.sub(s);
+		}
+		return new Signature(r,s);
+	}
+}
+
 function parseHexString(str) {
 	var result = [];
 	while (str.length >= 8) {
@@ -364,3 +414,4 @@ module.exports.S256Field = S256Field;
 module.exports.S256Point = S256Point;
 module.exports.parseHexString = parseHexString;
 module.exports.Signature = Signature;
+module.exports.PrivateKey = PrivateKey;
