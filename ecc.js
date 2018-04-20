@@ -288,7 +288,64 @@ class S256Point extends Point {
 	}
 }
 
+class Signature {
+	constructor (r, s) {
+		this.r = r;
+		this.s = s;
+	}
+	
+	der () {
+		let rbin = Buffer.alloc(32);
+		rbin.writeInt32BE(this.r, rbin.length - 4);
+		if (rbin[0] > 128) {
+			let pref = Buffer.from([0])
+			rbin = Buffer.concat([pref, rbin])
+		}
+		let result = Buffer.alloc(34);
+		let pref = Buffer.from([2, rbin.length])
+		result = Buffer.concat([pref, rbin]);
+		
+		let sbin = Buffer.alloc(32);
+		sbin.writeInt32BE(this.s, sbin.length - 4);
+		if (sbin[0] > 128) {
+			let pref = Buffer.from([0])
+			sbin = Buffer.concat([pref, sbin])
+		}
+		pref = Buffer.from([2, sbin.length])
+		const fresult = Buffer.concat([result, pref, sbin]);
+		pref = Buffer.from([0x30, fresult.length]); 
+		const rresult = Buffer.concat([pref,  fresult])
+		return rresult;
 
+	}
+	
+	parse (sig) {
+		const compound = sig.readInt8(0)
+		if (compound != 0x30) {
+			throw new Error('Bad Signature');
+		}
+		const length = sig.readInt8(1)
+		if (length + 2 != sig.length) {
+			throw new Error('Bad Signature Length');
+		}
+		let marker = sig.readInt8(2) 
+		if (marker != 0x02) {
+			throw new Error('Bad Signature');
+		}
+		const rlength = sig.readInt8(3)
+		const r = sig.slice(4, rlength+4)
+		marker = sig.readUInt8(4+rlength)
+		if (marker != 0x02) {
+			throw new Error('Bad Signature');
+		}
+		const slength = sig.readInt8(5+rlength)
+		const s = sig.slice(6 + rlength, rlength + slength + 6)
+		if (sig.length != rlength + slength + 6) {
+			throw new Error("Signature too long");
+		}
+		return sig;
+	}
+}
 
 function parseHexString(str) {
 	var result = [];
@@ -306,3 +363,4 @@ module.exports.Point = Point;
 module.exports.S256Field = S256Field;
 module.exports.S256Point = S256Point;
 module.exports.parseHexString = parseHexString;
+module.exports.Signature = Signature;

@@ -349,3 +349,14 @@ describe('test_address', function(){
 
 		
 })
+
+describe ('signature', function() {
+	it('sig', function() {
+		sig = new ecc.Signature(19,23);
+		der = sig.der();
+		sig2 = sig.parse(der);
+		it('test_der', function() {
+			assert.deepEqual(sig, sig2);
+		})
+	})
+})
