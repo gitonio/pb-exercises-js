@@ -196,6 +196,7 @@ describe('ECC', function() {
 
 describe('S256Test', function() {
 
+	/*
 	it('test_order', function() {
 		G = new ecc.S256Point(
 			new BN(47),
@@ -207,11 +208,13 @@ describe('S256Test', function() {
 	
 		N = new BN('FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141', 16);
 		N = new BN(8); 
+		console.log('G',G)
 		nn = G.rmul(N);
+		console.log('test_order', nn.x.num.toString(10))
 		assert.equal(nn.x.num.toString(10) , 116); 
 		
 	})
-	
+	*/
 	it('test_order2', function() {
 		G = new ecc.S256Point(
 			new BN('79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798', 16),
@@ -346,13 +349,26 @@ describe('test_address', function(){
 			)
 		})
 		
+		it('test verify', function () {
+			point = new ecc.S256Point(
+				new BN('887387e452b8eacc4acfde10d9aaf7f6d9a0f975aabb10d006e4da568744d06c', 16),
+				new BN('61de6d95231cd89026e286df3b6ae4a894a3378e393e93a0f45b666329a0ae34', 16));
+			z = new BN('ec208baa0fc1c19f708a9ca96fdeff3ac3f230bb4a7ba4aede4942ad003c0f60', 16);
+			r = new BN('ac8d1c87e51d0d441be8b3dd5b05c8795b48875dffe00b7ffcfac23010d3a395', 16)
+			s = new BN('68342ceff8935ededd102dd876ffd6ba72d6a427a3edb13d26eb0781cb423c4', 16);
+			assert.ok(point.verify(z, new ecc.Signature(r, s)))
+			z = new BN('7c076ff316692a3d7eb3c3bb0f8b1488cf72e1afcd929e29307032997a838a3d', 16);
+			r = new BN('eff69ef2b1bd93a66ed5219add4fb51e11a840f404876325a1e8ffe0529a2c', 16);
+			s = new BN('c7207fee197d27c618aea621406f6bf5ef6fca38681d82b2f06fddbdce6feab6', 16);
+			assert.ok(point.verify(z, new ecc.Signature(r, s)))
+		})
 
 		
 })
 
 describe ('signature', function() {
 	it('sig', function() {
-		sig = new ecc.Signature(19,23);
+		sig = new ecc.Signature(new BN(19), new BN(23));
 		der = sig.der();
 		sig2 = sig.parse(der);
 		it('test_der', function() {
@@ -363,9 +379,17 @@ describe ('signature', function() {
 
 describe('PrivateKeyTest', function() {
 	it('test_sign', function() {
-		pk = new ecc.PrivateKey(22);
-		z = 22;
-		sig = pk.sign(z);
-		assert.ok(pk.point.verify(z,sig));
+		let sec1 = new BN(22)
+		pk = new ecc.PrivateKey( sec1 );
+		z1 = new BN(23);
+		sig = pk.sign(z1);
+		assert.ok(pk.point.verify(z1,sig)); 
+	})
+
+	it('test wif', function() {
+		let secret = new BN('115792089237316194620101962879192770082288938495059262778356087116516711989248',10);
+		pk = new ecc.PrivateKey(secret);
+		let expected = 'L5oLkpV3aqBJ4BgssVAsax1iRa77G5CVYnv9adQ6Z87te7TyUdSC';
+		assert.equal(pk.wif(true,false), expected)
 	})
 })

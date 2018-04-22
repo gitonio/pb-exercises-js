@@ -44,6 +44,7 @@ function encodeBase58(s) {
 }
 
 function encodeBase58Checksum(s) {
+    s = s.toString('hex');
 	return encodeBase58(s + doubleSha256(s).slice(0,8));
 }
 
@@ -76,16 +77,22 @@ function bytesToString(b, encoding='ascii') {
     return b.toString(encoding);
 }
 
+function flipEndian(h) {
+    return h.match(/.{2}/g).reverse().join('');
+}
+
 function littleEndianToInt(b) {
 	b.toString("hex")
 }
 
 function intToLittleEndian(n, length) {
-		const buf = Buffer.allocUnsafe(length);
-		console.log('buf',buf.writeInt16LE(0));
-		return buf.writeInt16LE(0);
+		const buf = Buffer.alloc(length);
+        buf.writeInt32LE(n);
+        return buf;
 
 }
+
+
 
 
 module.exports.hash160 = hash160;
@@ -95,5 +102,6 @@ module.exports.encodeBase58Checksum = encodeBase58Checksum;
 module.exports.decodeBase58 = decodeBase58;
 module.exports.strToBytes = strToBytes;
 module.exports.bytesToString = bytesToString;
+module.exports.flipEndian = flipEndian;
 module.exports.littleEndianToInt = littleEndianToInt;
 module.exports.intToLittleEndian = intToLittleEndian;
