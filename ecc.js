@@ -201,7 +201,8 @@ class S256Field extends FieldElement {
 }
 
 class S256Point extends Point {
-	constructor(x, y, prime = new BN('fffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f ', 16)) {
+	constructor(x, y) {
+		let prime = new BN('fffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f ', 16)
 		let a = new S256Field(new BN(0), prime);
 		let b = new S256Field(new BN(7), prime);
 		if (x instanceof FieldElement) {
@@ -212,34 +213,27 @@ class S256Point extends Point {
 	}
 
 	rmul(coefficient) {
-		let N = new BN('FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141', 16);
-		//N = this.x.prime;
 		const bits = 256;
-		//const coe = new BN(coefficient)
-		const coe = BN.isBN(coefficient) ? coefficient : new BN(coefficient);
-		let coef = coe.mod(N);
-		let current = this;
+		let coef = new BN(coefficient)
+		let current = new S256Point(this.x, this.y);
+
 		let result = new S256Point(undefined, undefined);
 		for (let index = 0; index < bits; index++) {
-			//console.log('coef:',coef.toString(2), index)
+
 			if (coef.andln(1)) {
-				//if (coef & 1) {
+
 				result = result.add(current);
-				//console.log('result:', result);
+
 			}
 			current = current.add(current);
-			//coef = coef.shrn(1);
-			coef.ishrn(1);
-			//coef >>= 1;
+
+			coef = coef.shrn(1);
+
 		}
-		//console.log('exit:', result);
+
 		let nx = new S256Field(result.x.num, result.a.prime);
 		let ny = new S256Field(result.y.num, result.a.prime);
-		let na = new S256Field(new BN(0), result.a.prime);
-		let nb = new S256Field(new BN(7), result.a.prime);
-		//let np = new S256Point(nx, ny, na, nb);
-		return new S256Point(new S256Field(result.x.num, result.x.prime), new S256Field(result.y.num, result.y.prime), result.a.prime);
-		//return result
+		return new S256Point(nx, ny)
 
 	}
 
@@ -300,8 +294,7 @@ class S256Point extends Point {
 		let reds = sig.s.toRed(red)
 		let inv_reds = reds.redPow(N.subn(2))
 		let s_inv = inv_reds.fromRed()
-		
-		let u = s_inv.muln(z).mod(N);
+		let u = s_inv.mul(z).mod(N);
 		let v = sig.r.mul(s_inv).mod(N);
 		let total = G.rmul(u).add(this.rmul(v))
 		return total.x.num.eq(sig.r);
@@ -315,8 +308,8 @@ class Signature {
 	}
 	
 	der () {
-		let rbin = Buffer.alloc(32);
-		rbin.writeInt32BE(this.r, rbin.length - 4);
+
+		let rbin = this.r.toBuffer('le');
 		if (rbin[0] > 128) {
 			let pref = Buffer.from([0])
 			rbin = Buffer.concat([pref, rbin])
@@ -367,33 +360,42 @@ class Signature {
 	}
 }
 
+let G = new S256Point(
+	new BN('79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798', 16),
+	new BN('483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8', 16));	
+let N = new BN('FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141', 16);
+
 class PrivateKey {
 	
 	constructor(secret) {
-		this.secret = secret;
-		this.G = new S256Point(
-			new BN('79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798', 16),
-			new BN('483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8', 16));	
-		this.N = new BN('FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141', 16);
-
-		this.point = G.rmul(secret);
+		this.secret = secret;		
+		this.point = G.rmul(new BN(secret));
 	}
 	
 	sign(z) {
-		z = new BN(z)
+		//z = new BN(z)
 		let two = new BN(2);
-		var red = BN.red(this.N)
-		var k = new BN('400', 10);
+		let red = BN.red(N)
+		let k = new BN('400', 10);
 		let redk = k.toRed(red)
-		let k_inv_red = redk.redPow(this.N.subn(2))
+		let k_inv_red = redk.redPow(N.subn(2))
 		let k_inv = k_inv_red.fromRed()
 
-		const r = G.rmul(k).x.num;
-		let s = r.muln(this.secret).add(z).mul(k_inv).mod(this.N);
-		if(s.gt(this.N.divRound(two))) {
-			s = this.N.sub(s);
+		let r = G.rmul(k).x.num;
+		let s = r.mul(this.secret).add(z).mul(k_inv).mod(N);
+		if(s.gt(N.divRound(two))) {
+			s = N.sub(s);
 		}
 		return new Signature(r,s);
+	}
+
+	wif(compressed=true, testnet=false) {
+		
+		let sb = this.secret.toBuffer('be');
+		let prefix = testnet ? Buffer.from([0xef]) : Buffer.from([0x80]);
+		let suffix = compressed ? Buffer.from([0x01]) : Buffer.from([]);
+		let complet = Buffer.concat([prefix, sb, suffix])
+		return helper.encodeBase58Checksum(complet.toString('hex'))
 	}
 }
 

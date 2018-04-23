@@ -4,7 +4,9 @@
   "description": "",
   "main": "ecc.js",
   "scripts": {
-    "test": "mocha --watch"
+    "test": "mocha --watch --grep 'test wif'",
+    "testall": "mocha --watch "
+    
   },
   "author": "",
   "license": "ISC",
