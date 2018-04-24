@@ -41,3 +41,36 @@ components.map( obj => {
 	wif = helper.encodeBase58Checksum(Buffer.concat([prefix, secretBytes, suffix]))
 	return wif
 })
+
+
+var fs = require('fs');
+var data = ''
+var Readable = require('stream').Readable
+var MyStream = fs.createReadStream('input.txt');
+MyBuffer = Buffer.from('0dba685b4511dbd3d368e5c4358a1277de9486447af7b3604a69b8d9d8b7889d')
+MyStream = new Readable()
+MyStream.push(MyBuffer)
+MyStream.push(null)
+MyStream.setEncoding('UTF8')
+
+MyStream.on('readable', ( size) => {
+	console.log('do it');
+	data = MyStream.read(size);
+	console.log('data', data)
+  //console.log(`Received data: "${ data }"`);
+});
+
+
+MyStream.read(10);
+
+
+MyStream.on('readable', (data, size) => {
+	console.log('do it');
+  console.log(`Received data: "${ data }"`);
+});
+
+
+
+
+
+
