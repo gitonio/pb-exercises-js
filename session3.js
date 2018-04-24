@@ -46,14 +46,14 @@ components.map( obj => {
 var fs = require('fs');
 var data = ''
 var Readable = require('stream').Readable
-var MyStream = fs.createReadStream('input.txt');
+//var MyStream = fs.createReadStream('input.txt');
 MyBuffer = Buffer.from('0dba685b4511dbd3d368e5c4358a1277de9486447af7b3604a69b8d9d8b7889d')
-MyStream = new Readable()
-MyStream.push(MyBuffer)
-MyStream.push(null)
-MyStream.setEncoding('UTF8')
+readable = new Readable()
+readable.push(MyBuffer)
+readable.push(null)
+readable.setEncoding('UTF8')
 
-MyStream.on('readable', ( size) => {
+readable.on('readable', ( size) => {
 	console.log('do it');
 	data = MyStream.read(size);
 	console.log('data', data)
@@ -61,14 +61,20 @@ MyStream.on('readable', ( size) => {
 });
 
 
-MyStream.read(10);
+readable.read(10);
 
 
-MyStream.on('readable', (data, size) => {
+readable.on('readable', (size) => {
 	console.log('do it');
-  console.log(`Received data: "${ data }"`);
+  console.log(`Received data: "${ size }"`);
 });
 
+readable.on('data', (chunk) => {
+  console.log(`Received ${chunk.length} bytes of data.`);
+});.
+readable.on('end', () => {
+  console.log('There will be no more data.');
+});
 
 
 
