@@ -6,6 +6,7 @@ prime = 223;
 a = new ecc.FieldElement(0, prime);
 b = new ecc.FieldElement(7, prime);
 
+// WIF Example
 secret1 = Buffer.from('115792089237316193816632940749697632311307892324477961517254590225120294338560')
 secret2 = Buffer.from('ffffffffffffff00000000000000000000000000000000000000000000000000', 'hex')
 x = new BN('115792089237316193816632940749697632311307892324477961517254590225120294338560',10)
@@ -17,6 +18,7 @@ helper.encodeBase58Checksum(Buffer.concat([Buffer.from([0x80]), secret2, Buffer.
 helper.encodeBase58Checksum(Buffer.concat([Buffer.from([0xef]), secret2]))
 helper.encodeBase58Checksum(Buffer.concat([Buffer.from([0xef]), secret2, Buffer.from([0x01])]))
 
+// Exercise 1.1
 components = [
 				['ffffffffffffff80000000000000000000000000000000000000000000000000', false, true],
 				['fffffffffffffe00000000000000000000000000000000000000000000000000', true,  false],
