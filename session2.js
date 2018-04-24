@@ -1,4 +1,5 @@
 var ecc = require('./ecc.js')
+
 var helper = require('./helper.js')
 var BN = require('bn.js')
 prime = 223;
@@ -134,6 +135,51 @@ secret = new BN('1800555555518005555555',10)
 point = G.rmul(secret)
 point.address(true, testnet=true)
 
+//Signing example
 secret = new BN('4', 10)
 z = Math.floor(Math.random()*100)
-k = Math.floor(Math.random()*100)
+k = new BN(Math.floor(Math.random()*100))
+
+r = (G.rmul(k)).x.num
+var red = BN.red(N)
+var redk = k.toRed(red)
+
+s = (r.mul(secret).addn(z)).mul(redk.redPow(N.subn(2)).mod(N)).mod(N)
+z.toString(16)
+r.toString(16)
+s.toString(16)
+
+//Verification Example
+point = new ecc.S256Point(
+			new BN('e493dbf1c10d80f3581e4904930b1404cc6c13900ee0758474fa94abe8c4cd13', 16),
+			new BN('51ed993ea0d455b75642e2098ea51448d967ae33bfbdfe40cfe97bdc47739922', 16));
+z = new BN('524c14a77b666d906fbe56973becf3b3b9eac65442774473c68407e89c5659de', 16);
+r = new BN('c0824a3ccdf3482f1435ef1917fad4a1d5573a15f0fa18a9b81dc76a941c4a3c', 16);
+s = new BN('84ada30118411ef3f1777690d3dc182c289e04486375e91ba73bc48c51c59da7', 16);
+
+var red = BN.red(N)
+var reds = s.toRed(red)
+			
+u = z.mul(reds.redPow(N.subn(2))).mod(N)
+v = r.mul(reds.redPow(N.subn(2))).mod(N)
+(G.rmul(u).add(point.rmul(v))).x.num.eq(r)
+
+//Exercise 9.1
+
+px = new BN('887387e452b8eacc4acfde10d9aaf7f6d9a0f975aabb10d006e4da568744d06c', 16)
+py = new BN('61de6d95231cd89026e286df3b6ae4a894a3378e393e93a0f45b666329a0ae34', 16)
+signatures =[['ec208baa0fc1c19f708a9ca96fdeff3ac3f230bb4a7ba4aede4942ad003c0f60', 'ac8d1c87e51d0d441be8b3dd5b05c8795b48875dffe00b7ffcfac23010d3a395', '68342ceff8935ededd102dd876ffd6ba72d6a427a3edb13d26eb0781cb423c4' ],
+			 ['7c076ff316692a3d7eb3c3bb0f8b1488cf72e1afcd929e29307032997a838a3d', 'eff69ef2b1bd93a66ed5219add4fb51e11a840f404876325a1e8ffe0529a2c', 'c7207fee197d27c618aea621406f6bf5ef6fca38681d82b2f06fddbdce6feab6' ]
+]
+point = new ecc.S256Point( px, py)
+
+signatures.map(obj => {
+	z = new BN(obj[0], 'hex')
+	r = new BN(obj[1], 'hex')
+	s = new BN(obj[2], 'hex')
+	
+	reds = s.toRed(red) 
+	u = z.mul(reds.redPow(N.subn(2))).mod(N)
+	v = r.mul(reds.redPow(N.subn(2))).mod(N)
+	return (G.rmul(u).add(point.rmul(v))).x.num.eq(r)
+})
