@@ -270,7 +270,7 @@ class S256Point extends Point {
 		}
 	}
 
-	address(compressed, testnet) {
+	address(compressed=true, testnet=false) {
 		const sec = this.sec(compressed);
 		const h160 = Buffer.from(helper.hash160(sec), 'hex'); 
 		//new BN(helper.hash160(sec), 16).toBuffer('be');

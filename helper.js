@@ -20,7 +20,8 @@ function encodeBase58(s) {
     let b = new BN(s.toString('hex'),16);
 	const base = new BN(58);
     let count = 0;
-    for (let index = 0; index < s.length; index=index+2) {
+
+    for (let index = 0; index < s.length; index++) {
          if (s[index] == 0) {
             count++
         } else {
@@ -29,7 +30,7 @@ function encodeBase58(s) {
     }
 	
     let prefix = 1 * count;
-   result = []
+    result = []
 
     while (b > 0) {
         bmod = b.mod(base);

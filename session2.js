@@ -120,14 +120,20 @@ components.map( o => {
 	h160 = Buffer.from(helper.hash160(sec),'hex')
 	raw = Buffer.concat([Buffer.from([0x00]), h160])
 	checksum = Buffer.from(helper.doubleSha256(raw).slice(0,8),'hex')
-	console.log('ch',checksum.toString('hex'))
-	total = Buffer.concat([raw, checksum]).toString('hex')
-	console.log(helper.encodeBase58(total).toString('hex'))
+	total = Buffer.concat([raw, checksum])
+	console.log(helper.encodeBase58(total))
 
 	raw = Buffer.concat([Buffer.from([0x6f]), h160])
 	checksum = Buffer.from(helper.doubleSha256(raw).slice(0,8),'hex')
-	console.log('ch',checksum.toString('hex'))
-	total = Buffer.concat([raw, checksum]).toString('hex')
-	console.log(helper.encodeBase58(total).toString('hex'))
+	total = Buffer.concat([raw, checksum])
+	console.log(helper.encodeBase58(total))
+})
 
-	})
+//Exercise 8.1
+secret = new BN('1800555555518005555555',10)
+point = G.rmul(secret)
+point.address(true, testnet=true)
+
+secret = new BN('4', 10)
+z = Math.floor(Math.random()*100)
+k = Math.floor(Math.random()*100)
