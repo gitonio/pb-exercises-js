@@ -108,6 +108,14 @@ class Point {
 
 	}
 
+	eq(other) {
+		if (x instanceof FieldElement) {
+			return this.x.equals(other.x) && this.y.equals(other.y) && this.a.equals(other.a) && this.b.equals(other.b)
+		} else {
+			return this.x.num == other.x.num && this.y.num == other.y.num && this.a.num == other.a.num && this.b.num == other.b.num
+		}
+	}
+	
 	add(other) {
 		if (this.x instanceof FieldElement) {
 			if (this.x.num == undefined) {
@@ -141,8 +149,8 @@ class Point {
 				return new Point(x, y, this.a, this.b);
 			}
 			if (this.x.num && this.x.num.eq(other.x.num) && !this.y.num.eq(other.y.num)) {
-				return new Point(new FieldElement(undefined, x.prime),
-					new FieldElement(undefined, x.prime),
+				return new Point(new FieldElement(undefined, this.x.prime),
+					new FieldElement(undefined, this.x.prime),
 					this.a, this.b)
 			}
 		} else {
@@ -257,28 +265,30 @@ class S256Point extends Point {
 			let nax = this.x.num.toBuffer('be')
 			let nay = this.y.num.toBuffer('be')
 			let arr = [prefix, nax, nay]
-			return Buffer.concat(arr)
-		return na;
+			return Buffer.concat(arr);
 			
 		}
 	}
 
 	address(compressed, testnet) {
 		const sec = this.sec(compressed);
-		const h160 = new BN(helper.hash160(sec), 16).toBuffer('be');
+		const h160 = Buffer.from(helper.hash160(sec), 'hex'); 
+		//new BN(helper.hash160(sec), 16).toBuffer('be');
 		if (testnet) {
-			const prefix = Buffer.from([111]);
+			const prefix = Buffer.from([0x6f]);
 			let arr = [prefix, h160]
 			const raw = Buffer.concat(arr);
-			const checksum = helper.doubleSha256(raw).slice(0, 8)
-			const address = helper.encodeBase58(raw.toString('hex') + checksum)
+			const checksum = Buffer.from(helper.doubleSha256(raw).slice(0, 8),'hex')
+			const total = Buffer.concat([raw, checksum])
+			const address = helper.encodeBase58(total)
 			return address;
 		} else {
-			let prefix = Buffer.from([0])
+			let prefix = Buffer.from([0x00])
 			let arr = [prefix, h160]
 			const raw = Buffer.concat(arr);
-			const checksum = helper.doubleSha256(raw).slice(0, 8)
-			const address = helper.encodeBase58(raw.toString('hex') + checksum)
+			const checksum = Buffer.from(helper.doubleSha256(raw).slice(0, 8),'hex')
+			const total = Buffer.concat([raw, checksum])
+			const address = helper.encodeBase58(total)
 			return address;
 		}
 	}
@@ -395,7 +405,7 @@ class PrivateKey {
 		let prefix = testnet ? Buffer.from([0xef]) : Buffer.from([0x80]);
 		let suffix = compressed ? Buffer.from([0x01]) : Buffer.from([]);
 		let complet = Buffer.concat([prefix, sb, suffix])
-		return helper.encodeBase58Checksum(complet.toString('hex'))
+		return helper.encodeBase58Checksum(complet)
 	}
 }
 

@@ -4,24 +4,24 @@ var BN = require('bn.js');
 BASE58_ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
 
 function hash160(s) {
-		s = Buffer.from(s, 'hex')
+		//s = Buffer.from(s, 'hex')
 
 	const sha = Buffer.from(hash.sha256().update(s).digest('hex'),'hex');
     return hash.ripemd160().update(sha).digest('hex');
 }
 
 function doubleSha256(s) {
-	s = Buffer.from(s, 'hex')
+	//s = Buffer.from(s, 'hex')
     let sha1 = Buffer.from(hash.sha256().update(s).digest('hex'), 'hex');
     return hash.sha256().update(sha1).digest('hex');
 }
 
 function encodeBase58(s) {
-    let b = new BN(s,16);
+    let b = new BN(s.toString('hex'),16);
 	const base = new BN(58);
     let count = 0;
-    for (let index = 0; index < Buffer.byteLength(s)/2; index=index+2) {
-         if (s.slice(index, index+2)=='00') {
+    for (let index = 0; index < s.length; index=index+2) {
+         if (s[index] == 0) {
             count++
         } else {
             break
@@ -29,14 +29,13 @@ function encodeBase58(s) {
     }
 	
     let prefix = 1 * count;
-    result = []
+   result = []
 
     while (b > 0) {
         bmod = b.mod(base);
         result.unshift(BASE58_ALPHABET.charAt(bmod))
         b.idivn(base)
     }
-	
     if (prefix > 0) {
         result.unshift(prefix)
     }
@@ -44,8 +43,9 @@ function encodeBase58(s) {
 }
 
 function encodeBase58Checksum(s) {
-    s = s.toString('hex');
-	return encodeBase58(s + doubleSha256(s).slice(0,8));
+	checksum = Buffer.from(doubleSha256(s).slice(0,8), 'hex')
+	total = Buffer.concat([s, checksum])
+	return encodeBase58(total);
 }
 
 function decodeBase58(s) {

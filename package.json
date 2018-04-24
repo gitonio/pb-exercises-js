@@ -4,7 +4,7 @@
   "description": "",
   "main": "ecc.js",
   "scripts": {
-    "test": "mocha --watch --grep 'test wif'",
+    "test": "mocha --watch --grep mainnet_address",
     "testall": "mocha --watch "
     
   },
