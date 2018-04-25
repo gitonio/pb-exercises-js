@@ -83,17 +83,21 @@ function flipEndian(h) {
 }
 
 function littleEndianToInt(b) {
-	b.toString("hex")
+	return b.readUInt32LE()
 }
 
 function intToLittleEndian(n, length) {
 		const buf = Buffer.alloc(length);
-        buf.writeInt32LE(n);
+        buf.writeInt32LE(n);  
         return buf;
 
 }
 
-
+function readVarint(s) {
+	const i = s.read(1)
+	return i
+	console.log('i', i, i[0])
+}
 
 
 module.exports.hash160 = hash160;
@@ -106,3 +110,4 @@ module.exports.bytesToString = bytesToString;
 module.exports.flipEndian = flipEndian;
 module.exports.littleEndianToInt = littleEndianToInt;
 module.exports.intToLittleEndian = intToLittleEndian;
+module.exports.readVarint = readVarint;
