@@ -94,9 +94,9 @@ function intToLittleEndian(n, length) {
 }
 
 function readVarint(s) {
+	//TODO add logic
 	const i = s.read(1)
 	return i
-	console.log('i', i, i[0])
 }
 
 
