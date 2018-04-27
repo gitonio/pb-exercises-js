@@ -28,8 +28,7 @@ class TxIn {
 		this.prevTx = Buffer.from(Array.prototype.reverse.call(new Uint16Array(s.read(32))));
 		this.prevIndex = helper.littleEndianToInt(s.read(4))
 		const scriptSigLength = helper.readVarint(s)[0]
-		this.scriptSig = s.read(scriptSigLength)
-		console.log(new script.Script(this.scriptSig))
+		this.scriptSig = new script.Script(s.read(scriptSigLength))
 		const x = s.read(4)
 		this.sequence = helper.littleEndianToInt(x)
 		
@@ -40,7 +39,7 @@ class TxOut {
 	constructor(s) {
 		this.amount = helper.littleEndianToInt(s.read(8))
 		const scriptPubkeyLength = helper.readVarint(s)[0]
-		this.scriptPubkey = s.read(scriptPubkeyLength)
+		this.scriptPubkey = new script.Script(s.read(scriptPubkeyLength))
 	}
 }
 	

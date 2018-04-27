@@ -51,11 +51,10 @@ bin_transaction = Buffer.from(hex_transaction, 'hex');
 		readable = new Readable()
 		readable.push(bin_transaction)
 		readable.push(null)
-		readable.setEncoding('UTF8')
 		
 		tx = new Tx.Tx(readable)
-		tx.inputs[1].scriptSig.toString('hex')
-		tx.outputs[0].scriptPubkey.toString('hex')
+		tx.inputs[1].scriptSig
+		tx.outputs[0].scriptPubkey
 		tx.outputs[0].amount
 
 
