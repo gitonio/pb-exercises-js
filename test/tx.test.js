@@ -13,7 +13,7 @@ var Readable = require('stream').Readable
 	readable = new Readable()
 	readable.push(rawTx)
 	readable.push(null)
-	readable.setEncoding('UTF8')
+	//readable.setEncoding('UTF8')
 		
 	tx = new Tx.Tx(readable)
 	sc = new Script.Script(rawTx2);

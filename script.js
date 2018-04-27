@@ -140,6 +140,44 @@ class Script {
 		this.elements = elements;	
 	}
 	
+	type () {
+		
+		if (this.elements.length == 0) {
+			return 'blank'
+		} else if ( 
+			this.elements[0] == 0x76 &&
+			this.elements[1] == 0xa9 &&
+			this.elements[2] instanceof Buffer &&
+			this.elements[2].length == 0x14 &&
+			this.elements[3] == 0x88 &&
+			this.elements[4] == 0xac
+		) {
+			return 'p2pkh'
+		} else if (
+			this.elements[0] == 0xa9 &&
+			this.elements[1] instanceof Buffer &&
+			this.elements[1].length == 0x14 &&
+			this.elements[this.elements.length-1] == 0x87
+		) {
+			return 'p2sh'
+		} else if (
+			this.elements[0]  instanceof Buffer &&
+			[0x47, 0x48, 0x49].indexOf(this.elements[0].length) != -1 &&
+			this.elements[1] instanceof Buffer &&
+			[0x21, 0x41].indexOf(this.elements[1].length) != -1 
+		) {
+			return 'p2pkh sig'
+		} else if (
+			this.elements.length > 1 &&
+			[0x47, 0x48, 0x49].indexOf(this.elements[1].length) != -1 &&
+			this.elements[this.elements.length-1][this.elements[this.elements.length-1].length-1] == 0xae
+		) {
+			return 'p2sh sig'
+		} else {
+			return 'unknown'
+		}
+	}			
+	
 	serialize() {
 		let result = Buffer.from([])
 		this.elements.map( obj => {
@@ -152,6 +190,50 @@ class Script {
 		})
 		return result
 	}
+	
+	signature(index=0) {
+		const sigType = this.type();
+		if (sigType == 'p2pkh sig') {
+			return this.elements[0];
+		} else if (sigType == 'p2sh sig') {
+			return this.elements[index + 1]
+		} else {
+			throw new Error('script type needs to be p2pkh sig or p2sh sig');
+		}
+	}
+	
+	secPubkey(index = 0) {
+		const sigType = this.type();
+		if (sigType == 'p2pkh sig') {
+			return this.elements[1];
+		} else if (sigType == 'p2sh sig') {
+			const redeemScript = this.parse(this.elements[this.elements.length-1])
+			return redeemScript[index + 1];
+		} 
+		
+	}
+	
+	parse (ss) {
+		let s = new Readable()
+		s.push(ss)
+		s.push(null)
+		let elements = []
+		let current = s.read(1)
+		let opCode = 0;
+		while (current != null) {
+			opCode = current[0]
+			if (opCode > 0 && opCode <= 75) {
+				elements.push(s.read(opCode))
+			} else {
+				elements.push(opCode)
+			}
+			current = s.read(1)
+		}
+		return elements;	
+
+	}
+	
+	
 }
 
 Script.prototype.toString = function(){
@@ -165,7 +247,7 @@ Script.prototype.toString = function(){
 			
 		})
 		return result
-	}
+}
 
 
 

@@ -53,8 +53,8 @@ bin_transaction = Buffer.from(hex_transaction, 'hex');
 		readable.push(null)
 		
 		tx = new Tx.Tx(readable)
-		tx.inputs[1].scriptSig
-		tx.outputs[0].scriptPubkey
+		tx.inputs[1].scriptSig.toString()
+		tx.outputs[0].scriptPubkey.toString()
 		tx.outputs[0].amount
 
 
