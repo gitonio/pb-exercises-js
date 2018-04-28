@@ -1,7 +1,9 @@
 var hash = require('hash.js');
 var BN = require('bn.js');
 
+SIGHASH_ALL = 1;
 BASE58_ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
+
 
 function hash160(s) {
 		//s = Buffer.from(s, 'hex')
@@ -99,6 +101,7 @@ function readVarint(s) {
 	return i
 }
 
+module.exports.SIGHASH_ALL = SIGHASH_ALL;
 
 module.exports.hash160 = hash160;
 module.exports.doubleSha256 = doubleSha256;

@@ -32,7 +32,21 @@ class TxIn {
 		const x = s.read(4)
 		this.sequence = helper.littleEndianToInt(x)
 		
-		}
+	}
+	
+	derSignature(index=0) {
+		const signature = this.scriptSig.signature(index=index)
+		return signature.slice(0,signature.length-1);
+	}
+	
+	hashType(index=0) {
+		const signature = this.scriptSig.signature(index=index)
+		return signature[signature.length-1]
+	}
+	
+	secPubkey(index=0) {
+		return this.scriptSig.secPubkey(index=index);
+	}
 }
 
 class TxOut {
