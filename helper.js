@@ -90,7 +90,7 @@ function littleEndianToInt(b) {
 
 function intToLittleEndian(n, length) {
 		const buf = Buffer.alloc(length);
-        buf.writeInt32LE(n);  
+        buf.writeUInt32LE(n);  
         return buf;
 
 }
@@ -99,6 +99,20 @@ function readVarint(s) {
 	//TODO add logic
 	const i = s.read(1)
 	return i
+}
+
+function encodeVarint(i) {
+    if (i < 0xfd) {
+        return Buffer.from([i])
+    } else if (i < 0x1000) {
+        return Buffer.concat([0xfd, intToLittleEndian(i,2)])
+    } else if (i < 0x100000000) {
+        return Buffer.concat([0xfe, intToLittleEndian(i,4)])
+    } else if (i < 0x10000000000000000) {
+        return Buffer.concat([0xff, intToLittleEndian(i,8)])
+    } else {
+        throw new Error('integer too large ${i}')
+    }
 }
 
 module.exports.SIGHASH_ALL = SIGHASH_ALL;
@@ -114,3 +128,4 @@ module.exports.flipEndian = flipEndian;
 module.exports.littleEndianToInt = littleEndianToInt;
 module.exports.intToLittleEndian = intToLittleEndian;
 module.exports.readVarint = readVarint;
+module.exports.encodeVarint = encodeVarint;

@@ -1,5 +1,7 @@
+
 var helper = require('./helper')
 var script = require('./script')
+
 class Tx {
 	constructor(s) {
 
@@ -21,6 +23,21 @@ class Tx {
 		this.locktime = helper.littleEndianToInt(s.read(4))
 
 	}	
+
+	serialize() {
+		result = helper.intToLittleEndian(this.version, 4)
+		result = Buffer.concat([result , helper.encodeVarint(this.inputs.length)])
+		this.inputs.map( obj => {
+			result = Buffer.concat([result , obj.serialize()])
+		})
+		result = Buffer.concat([result , helper.encodeVarint(this.outputs.length)])
+		this.outputs.map ( obj => {
+			result = Buffer.concat([result, obj.serialize()]);
+		})
+		result = Buffer.concat([result, helper.intToLittleEndian(this.locktime, 4)]);
+		console.log(result.toString('hex'))
+		return result;
+	}
 }
  
 class TxIn {
@@ -32,6 +49,17 @@ class TxIn {
 		const x = s.read(4)
 		this.sequence = helper.littleEndianToInt(x)
 		
+	}
+
+	serialize() {
+		let result = Array.prototype.reverse.call(this.prevTx)
+		result = Buffer.concat([result , helper.intToLittleEndian(this.prevIndex, 4)]);
+		const rawScriptSig = this.scriptSig.serialize();
+		result = Buffer.concat([result, rawScriptSig]);
+		result = Buffer.concat([result, helper.encodeVarint(rawScriptSig.length)])
+		result = Buffer.concat([result, helper.intToLittleEndian(this.sequence,4)])
+		console.log('txin', result)
+		return result;
 	}
 	
 	derSignature(index=0) {
@@ -54,6 +82,15 @@ class TxOut {
 		this.amount = helper.littleEndianToInt(s.read(8))
 		const scriptPubkeyLength = helper.readVarint(s)[0]
 		this.scriptPubkey = new script.Script(s.read(scriptPubkeyLength))
+	}
+
+	serialize() {
+		let result = helper.intToLittleEndian(this.amout, 8);
+		const rawScriptPubkey = this.scriptPubkey.serialize();
+		result = Buffer.concat([result, helper.encodeVarint(rawScriptPubkey.length)]);
+		result = Buffer.concat([result, rawScriptPubkey]);
+		console.log('txout', result)
+		return result;
 	}
 }
 	
