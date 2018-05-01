@@ -13,7 +13,8 @@ class Tx {
 		const numInputs = helper.readVarint(s)[0]
 		let inputs = []
 		for (let index = 0; index < numInputs; index++) {
-				inputs.push(new TxIn(s))
+				//inputs.push(new TxIn(s))
+				inputs.push(TxIn.parse(s))
 		}
 		this.inputs = inputs;
 		const numOutputs = helper.readVarint(s)[0]
@@ -47,15 +48,35 @@ class Tx {
 }
  
 class TxIn {
-	constructor(s) {
-		this.prevTx = Buffer.from(Array.prototype.reverse.call(new Uint16Array(s.read(32))));
-		this.prevIndex = helper.littleEndianToInt(s.read(4))
-		const scriptSigLength = helper.readVarint(s)[0]
-		this.scriptSig = new script.Script(s.read(scriptSigLength))
-		const x = s.read(4)
-		this.sequence = helper.littleEndianToInt(x)
-		this.cache = {}
+	// constructor(s) {
+	// 	this.prevTx = Buffer.from(Array.prototype.reverse.call(new Uint16Array(s.read(32))));
+	// 	this.prevIndex = helper.littleEndianToInt(s.read(4))
+	// 	const scriptSigLength = helper.readVarint(s)[0]
+	// 	this.scriptSig = new script.Script(s.read(scriptSigLength))
+	// 	const x = s.read(4)
+	// 	this.sequence = helper.littleEndianToInt(x)
+	// 	this.cache = {}
 		
+	// }
+
+	constructor (prevTx, prevIndex, scriptSig, sequence, cache){
+		this.prevTx = prevTx;
+		this.prevIndex = prevIndex;
+		this.scriptSig = scriptSig;
+		this.sequence = sequence;
+		this.cache = cache;
+	}
+	static parse(s) {
+		const prevTx = Buffer.from(Array.prototype.reverse.call(new Uint16Array(s.read(32))));
+		
+		const prevIndex = helper.littleEndianToInt(s.read(4))
+		const scriptSigLength = helper.readVarint(s)[0]
+		const scriptSig = new script.Script(s.read(scriptSigLength))
+		const x = s.read(4)
+		const sequence = helper.littleEndianToInt(x)
+		const cache = {}
+		return new TxIn(prevTx, prevIndex, scriptSig, sequence, cache);
+
 	}
 
 	serialize() {
@@ -145,3 +166,4 @@ class TxOut {
 }
 	
 module.exports.Tx = Tx;
+module.exports.TxIn = TxIn;
