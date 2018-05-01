@@ -73,10 +73,11 @@ var Readable = require('stream').Readable
 		txHash = 'd1c789a9c60383bf715f3f6ad9d14b91fe55f3deb369fe5d9280cb1a01793f81'
 		index = 0
 		want = 42505594
-		let txIn = new Tx.TxIn(Buffer.from(txHash,'hex'), index, Buffer.from([]),0)
+		//want = 32454049
+		let txIn = new Tx.TxIn(Buffer.from(txHash,'hex'), index, Buffer.from([]),0, {})
 		console.log(txIn)
 		//console.log('tiv0', tx.inputs[0].value())
-		tx.inputs[0].value().then(data => {
+		txIn.value().then(data => {
 			console.log('data', data)
 			assert.equal(data, want) 
 			//done()
