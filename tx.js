@@ -45,6 +45,19 @@ class Tx {
 		result = Buffer.concat([result, helper.intToLittleEndian(this.locktime, 4)]);
 		return result;
 	}
+
+	fee() {
+		let inputSum = 0;
+		let outputSum = 0;
+		console.log('promise', this.inputs[0].value().then( (data) => {console.log(data)}))
+		let x = this.inputs.map(obj => {
+			return obj.value()
+		})
+
+		let results = Promise.all(x)
+
+		results.then(data => console.log('data', data))
+	}
 }
  
 class TxIn {
@@ -95,10 +108,8 @@ class TxIn {
 	}
 	
 	fetchTx(testnet=false) {
-		console.log('fetch')
 		if (!(this.prevTx in this.cache)) {
 			const url = this.getUrl(testnet) + '/rawtx/' + this.prevTx.toString('hex');
-			console.log(url)
 			return new Promise((resolve, reject) => {
 				https.get(url, function(res) { 
 					if (res.statusCode < 200 || res.statusCode > 299) {
@@ -115,25 +126,30 @@ class TxIn {
 		}
 	}
 	
-	value(testnet=false) {
-		
+	value(testnet=false) {	
 		return this.fetchTx(testnet=testnet)
 			.then( (html) => {
-				console.log(html)
-				const raw = Buffer.from(JSON.parse(html).rawtx)
+				const raw = Buffer.from(JSON.parse(html).rawtx,'hex')
 				readable = new Readable()
-				readable.push(rawTx)
+				readable.push(raw)
 				readable.push(null)
 				tx = new Tx(readable);
-				console.log(tx)
-				console.log('txa',tx.outputs[this.prevIndex].amount)
-				//return 42505594;
 				return tx.outputs[this.prevIndex].amount;
-
-			}).catch((err) => { return -9999});
-			
-		//return tx.ouputs[this.prevIndex].amount;
+			}).catch((err) => { console.log(err)});
 	}
+
+	scriptPubkey(testnet=false) {
+		return this.fetchTx(testnet=testnet)
+		.then( (html) => {
+			const raw = Buffer.from(JSON.parse(html).rawtx,'hex')
+			readable = new Readable()
+			readable.push(raw)
+			readable.push(null)
+			tx = new Tx(readable);
+			return tx.outputs[this.prevIndex].scriptPubkey;
+		}).catch((err) => { console.log(err)});
+}
+
 	derSignature(index=0) {
 		const signature = this.scriptSig.signature(index=index)
 		return signature.slice(0,signature.length-1);
