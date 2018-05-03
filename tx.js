@@ -3,6 +3,7 @@ var https = require('https')
 var helper = require('./helper')
 var script = require('./script')
 var Readable = require('stream').Readable
+var BN = require('bn.js')
 
 class Tx {
 	constructor(version, inputs, outputs, locktime, testnet=false) {
@@ -94,14 +95,23 @@ class Tx {
 		let altTxIns = []
 		this.inputs.map( obj => altTxIns.push(new TxIn(obj.prevTx, obj.prevIndex, Buffer.from([]), obj.sequence ,{})))
 		let signingInput = altTxIns[inputIndex];
-		const scriptPubkey = signingInput.scriptPubkey(this.testnet)
-		signingInput.scriptSig = scriptPubkey;
-		const altTx = new Tx(this.version, altTxIns, this.outputs, this.locktime)
-		console.log('altTx',altTx)
-		const result = altTx.serialize() + helper.intToLittleEndian(hashType, 4)
-		const s256 = helper.doubleSha256(result);
-		return new BN(s256, 16)
-		
+		// const scriptPubkey = signingInput.scriptPubkey(this.testnet);
+		// signingInput.scriptSig = scriptPubkey;
+		// const altTx = new Tx(this.version, altTxIns, this.outputs, this.locktime)
+		// console.log('altTx',altTx)
+		// const result = altTx.serialize() + helper.intToLittleEndian(hashType, 4)
+		// const s256 = helper.doubleSha256(result);
+		// return new BN(s256, 16) 
+		return signingInput.scriptPubkey(this.testnet).then(scriptPubkey => {
+			signingInput.scriptSig = scriptPubkey;
+			const altTx = new Tx(this.version, altTxIns, this.outputs, this.locktime)
+			//console.log('altTx',altTx)
+			const result = Buffer.concat([altTx.serialize() , helper.intToLittleEndian(hashType, 4) ])
+			//console.log('result',result.toString('hex'))
+			const s256 = helper.doubleSha256(Buffer.from(result));
+			console.log('s256', s256)
+			return new BN(s256, 16) 
+		})
 	}
 }
  
