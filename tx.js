@@ -5,15 +5,15 @@ var script = require('./script')
 var Readable = require('stream').Readable
 
 class Tx {
-	constructor(s) {
+	constructor(version, inputs, outputs, locktime, testnet=false) {
 
+	/*
 		let x = s.read(4)
 		const version = helper.littleEndianToInt(x)
 		this.version = version
 		const numInputs = helper.readVarint(s)[0]
 		let inputs = []
 		for (let index = 0; index < numInputs; index++) {
-				//inputs.push(new TxIn(s))
 				inputs.push(TxIn.parse(s))
 		}
 		this.inputs = inputs;
@@ -24,11 +24,33 @@ class Tx {
 		}
 		this.outputs = outputs;
 		this.locktime = helper.littleEndianToInt(s.read(4))
-
+	*/
+	
+		this.version = version
+		this.inputs = inputs;
+		this.outputs = outputs;
+		this.locktime = locktime
+	
 	}	
 	
 	static parse(s) {
-		
+		let x = s.read(4)
+		const version = helper.littleEndianToInt(x)
+		//this.version = version
+		const numInputs = helper.readVarint(s)[0]
+		let inputs = []
+		for (let index = 0; index < numInputs; index++) {
+				inputs.push(TxIn.parse(s))
+		}
+		//this.inputs = inputs;
+		const numOutputs = helper.readVarint(s)[0]
+		let outputs = []
+		for (let index = 0; index < numOutputs; index++) {
+				outputs.push(new TxOut(s))
+		}
+		//this.outputs = outputs;
+		const locktime = helper.littleEndianToInt(s.read(4))
+		return new Tx(version, inputs, outputs, locktime)
 	}
 
 	serialize() {
@@ -47,16 +69,39 @@ class Tx {
 	}
 
 	fee() {
+		//TODO cleanup
 		let inputSum = 0;
 		let outputSum = 0;
-		console.log('promise', this.inputs[0].value().then( (data) => {console.log(data)}))
 		let x = this.inputs.map(obj => {
 			return obj.value()
 		})
 
 		let results = Promise.all(x)
+		let y = this.outputs.map(obj => {
+			return obj.amount
+		})
 
-		results.then(data => console.log('data', data))
+		let resultsy = Promise.all(y)
+		
+		const reducer = (ac,cu) => ac + cu;
+		
+		return results.then(data => data.reduce(reducer))
+			   .then(  xx => resultsy.then(data => {data.reduce(reducer); return xx - data.reduce(reducer)   }))
+			   
+	}
+	
+	sigHash(inputIndex, hashType) {
+		let altTxIns = []
+		this.inputs.map( obj => altTxIns.push(new TxIn(obj.prevTx, obj.prevIndex, Buffer.from([]), obj.sequence ,{})))
+		let signingInput = altTxIns[inputIndex];
+		const scriptPubkey = signingInput.scriptPubkey(this.testnet)
+		signingInput.scriptSig = scriptPubkey;
+		const altTx = new Tx(this.version, altTxIns, this.outputs, this.locktime)
+		console.log('altTx',altTx)
+		const result = altTx.serialize() + helper.intToLittleEndian(hashType, 4)
+		const s256 = helper.doubleSha256(result);
+		return new BN(s256, 16)
+		
 	}
 }
  
@@ -133,7 +178,7 @@ class TxIn {
 				readable = new Readable()
 				readable.push(raw)
 				readable.push(null)
-				tx = new Tx(readable);
+				tx = Tx.parse(readable);
 				return tx.outputs[this.prevIndex].amount;
 			}).catch((err) => { console.log(err)});
 	}
@@ -145,7 +190,7 @@ class TxIn {
 			readable = new Readable()
 			readable.push(raw)
 			readable.push(null)
-			tx = new Tx(readable);
+			tx = Tx.parse(readable);
 			return tx.outputs[this.prevIndex].scriptPubkey;
 		}).catch((err) => { console.log(err)});
 }
