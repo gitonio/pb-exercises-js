@@ -85,7 +85,8 @@ function flipEndian(h) {
 }
 
 function littleEndianToInt(b) {
-	return b.readUInt32LE()
+	//return b.readUInt32LE()
+	return b.readUIntLE(0,Buffer.byteLength(b))
 }
 
 function intToLittleEndian(n, length) {
@@ -97,8 +98,17 @@ function intToLittleEndian(n, length) {
 
 function readVarint(s) {
 	//TODO add logic
-	const i = s.read(1)
-	return i
+	const i = s.read(1)[0]
+	console.log('readVaring i',i,i[0])
+	if (i == 0xfd) {
+		return littleEndianToInt(s.read(2))
+	} else if (i == 0xfe){
+		return littleEndianToInt(s.read(4))
+	} else if (i == 0xff) {
+		return littleEndianToInt(s.read(8))
+	} else {
+		return i
+	}
 }
 
 function encodeVarint(i) {

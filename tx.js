@@ -9,24 +9,6 @@ var request = require('sync-request');
 class Tx {
 	constructor(version, inputs, outputs, locktime, testnet=false) {
 
-	/*
-		let x = s.read(4)
-		const version = helper.littleEndianToInt(x)
-		this.version = version
-		const numInputs = helper.readVarint(s)[0]
-		let inputs = []
-		for (let index = 0; index < numInputs; index++) {
-				inputs.push(TxIn.parse(s))
-		}
-		this.inputs = inputs;
-		const numOutputs = helper.readVarint(s)[0]
-		let outputs = []
-		for (let index = 0; index < numOutputs; index++) {
-				outputs.push(new TxOut(s))
-		}
-		this.outputs = outputs;
-		this.locktime = helper.littleEndianToInt(s.read(4))
-	*/
 	
 		this.version = version
 		this.inputs = inputs;
@@ -37,21 +19,31 @@ class Tx {
 	
 	static parse(s) {
 		let x = s.read(4)
+		console.log('x',x)
 		const version = helper.littleEndianToInt(x)
 		//this.version = version
-		const numInputs = helper.readVarint(s)[0]
+		console.log('version', version)
+		const numInputs = helper.readVarint(s)
+		console.log('numinputs', numInputs)
 		let inputs = []
 		for (let index = 0; index < numInputs; index++) {
 				inputs.push(TxIn.parse(s))
 		}
 		//this.inputs = inputs;
-		const numOutputs = helper.readVarint(s)[0]
+		console.log('ip', inputs)
+		//const temp = helper.readVarint(s)
+		//console.log('temp', temp)
+		const numOutputs = helper.readVarint(s)
+		//const numOutputs = temp
+		console.log('nop', numOutputs)
 		let outputs = []
 		for (let index = 0; index < numOutputs; index++) {
 				outputs.push(new TxOut(s))
 		}
 		//this.outputs = outputs;
+		console.log('op', outputs)
 		const locktime = helper.littleEndianToInt(s.read(4))
+		console.log('lt',locktime)
 		return new Tx(version, inputs, outputs, locktime)
 	}
 
@@ -96,7 +88,9 @@ class Tx {
 		//TODO cleanup
 		let inputSum = 0;
 		let outputSum = 0;
+		console.log('this.inputs len', this.inputs.length)
 		let x = this.inputs.map(obj => {
+			console.log('input', obj)
 			return obj.value()
 		})
 
@@ -135,7 +129,6 @@ class Tx {
 			const altTx = new Tx(this.version, altTxIns, this.outputs, this.locktime)
 			const result = Buffer.concat([altTx.serialize() , helper.intToLittleEndian(hashType, 4) ])
 			const s256 = helper.doubleSha256(Buffer.from(result));
-			console.log('s256', s256)
 			return new BN(s256, 16) 
 		
 	}
@@ -154,8 +147,11 @@ class TxIn {
 	
 	static parse(s) {
 		const prevTx = Buffer.from(Array.prototype.reverse.call(new Uint16Array(s.read(32))));
+		console.log('TxIn prevtx', prevTx)
 		const prevIndex = helper.littleEndianToInt(s.read(4))
-		const scriptSigLength = helper.readVarint(s)[0]
+		console.log('TxIn prevIndex', prevIndex)
+		const scriptSigLength = helper.readVarint(s)
+		console.log('TxIn ssl',scriptSigLength) 
 		const scriptSig = new script.Script(s.read(scriptSigLength))
 		const x = s.read(4)
 		const sequence = helper.littleEndianToInt(x)
@@ -211,13 +207,17 @@ class TxIn {
 		if (!(this.prevTx in this.cache)) {
 			console.log('no cache');
 			const url = this.getUrl(testnet) + '/rawtx/' + this.prevTx.toString('hex');
+			console.log(url)
 			const req = request('GET', url)
 			const rawtx = JSON.parse(req.getBody('utf8')).rawtx
+			
 			const raw = Buffer.from(rawtx,'hex');
+			console.log('fetch raw', rawtx)
 			let readable = new Readable();
 			readable.push(raw);
 			readable.push(null);
 			let tx = Tx.parse(readable);
+			console.log('fetched tx', tx);
 			this.cache[this.prevTx] = tx;
 			
 		};	
@@ -278,7 +278,7 @@ class TxIn {
 class TxOut {
 	constructor(s) {
 		this.amount = helper.littleEndianToInt(s.read(8))
-		const scriptPubkeyLength = helper.readVarint(s)[0]
+		const scriptPubkeyLength = helper.readVarint(s)
 		this.scriptPubkey = new script.Script(s.read(scriptPubkeyLength))
 	}
 

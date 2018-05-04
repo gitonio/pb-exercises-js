@@ -49,9 +49,9 @@ t = tx.Tx.parse(readable)
 input_sum = 0
 output_sum = 0
 # iterate over all inputs (t.tx_ins)
-		x = t.inputs.map(obj => {
-			return obj.value()
-		})
+x = t.inputs.map(obj => {
+	return obj.value()
+})
 
 		y = t.outputs.map(obj => {
 			return obj.amount
