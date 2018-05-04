@@ -4,6 +4,7 @@ var helper = require('./helper')
 var script = require('./script')
 var Readable = require('stream').Readable
 var BN = require('bn.js')
+var request = require('sync-request');
 
 class Tx {
 	constructor(version, inputs, outputs, locktime, testnet=false) {
@@ -69,7 +70,7 @@ class Tx {
 		return result;
 	}
 
-	fee() {
+	feeAsync() {
 		//TODO cleanup
 		let inputSum = 0;
 		let outputSum = 0;
@@ -91,41 +92,57 @@ class Tx {
 			   
 	}
 	
-	sigHash(inputIndex, hashType) {
+	fee() {
+		//TODO cleanup
+		let inputSum = 0;
+		let outputSum = 0;
+		let x = this.inputs.map(obj => {
+			return obj.value()
+		})
+
+		let y = this.outputs.map(obj => {
+			return obj.amount
+		})
+
+		
+		const reducer = (ac,cu) => ac + cu;
+		
+		return x.reduce(reducer) - y.reduce(reducer)  
+			   
+	}
+	
+	
+	sigHashAsync(inputIndex, hashType) {
 		let altTxIns = []
 		this.inputs.map( obj => altTxIns.push(new TxIn(obj.prevTx, obj.prevIndex, Buffer.from([]), obj.sequence ,{})))
 		let signingInput = altTxIns[inputIndex];
-		// const scriptPubkey = signingInput.scriptPubkey(this.testnet);
-		// signingInput.scriptSig = scriptPubkey;
-		// const altTx = new Tx(this.version, altTxIns, this.outputs, this.locktime)
-		// console.log('altTx',altTx)
-		// const result = altTx.serialize() + helper.intToLittleEndian(hashType, 4)
-		// const s256 = helper.doubleSha256(result);
-		// return new BN(s256, 16) 
-		return signingInput.scriptPubkey(this.testnet).then(scriptPubkey => {
+		return signingInput.scriptPubkeyAsync(this.testnet).then(scriptPubkey => {
 			signingInput.scriptSig = scriptPubkey;
 			const altTx = new Tx(this.version, altTxIns, this.outputs, this.locktime)
-			//console.log('altTx',altTx)
 			const result = Buffer.concat([altTx.serialize() , helper.intToLittleEndian(hashType, 4) ])
-			//console.log('result',result.toString('hex'))
 			const s256 = helper.doubleSha256(Buffer.from(result));
 			console.log('s256', s256)
 			return new BN(s256, 16) 
 		})
 	}
+	
+		sigHash(inputIndex, hashType) {
+		let altTxIns = []
+		this.inputs.map( obj => altTxIns.push(new TxIn(obj.prevTx, obj.prevIndex, Buffer.from([]), obj.sequence ,{})))
+		let signingInput = altTxIns[inputIndex];
+		const scriptPubkey = signingInput.scriptPubkey(this.testnet)
+			signingInput.scriptSig = scriptPubkey;
+			const altTx = new Tx(this.version, altTxIns, this.outputs, this.locktime)
+			const result = Buffer.concat([altTx.serialize() , helper.intToLittleEndian(hashType, 4) ])
+			const s256 = helper.doubleSha256(Buffer.from(result));
+			console.log('s256', s256)
+			return new BN(s256, 16) 
+		
+	}
+
 }
  
 class TxIn {
-	// constructor(s) {
-	// 	this.prevTx = Buffer.from(Array.prototype.reverse.call(new Uint16Array(s.read(32))));
-	// 	this.prevIndex = helper.littleEndianToInt(s.read(4))
-	// 	const scriptSigLength = helper.readVarint(s)[0]
-	// 	this.scriptSig = new script.Script(s.read(scriptSigLength))
-	// 	const x = s.read(4)
-	// 	this.sequence = helper.littleEndianToInt(x)
-	// 	this.cache = {}
-		
-	// }
 
 	constructor (prevTx, prevIndex, scriptSig, sequence, cache){
 		this.prevTx = prevTx;
@@ -134,9 +151,9 @@ class TxIn {
 		this.sequence = sequence;
 		this.cache = cache;
 	}
+	
 	static parse(s) {
 		const prevTx = Buffer.from(Array.prototype.reverse.call(new Uint16Array(s.read(32))));
-		
 		const prevIndex = helper.littleEndianToInt(s.read(4))
 		const scriptSigLength = helper.readVarint(s)[0]
 		const scriptSig = new script.Script(s.read(scriptSigLength))
@@ -144,7 +161,6 @@ class TxIn {
 		const sequence = helper.littleEndianToInt(x)
 		const cache = {}
 		return new TxIn(prevTx, prevIndex, scriptSig, sequence, cache);
-
 	}
 
 	serialize() {
@@ -162,9 +178,11 @@ class TxIn {
 		return (testnet ?  'https://testnet.blockexplorer.com/api' :  'https://btc-bitcore3.trezor.io/api');
 	}
 	
-	fetchTx(testnet=false) {
+	fetchTxAsync(testnet=false) {
 		if (!(this.prevTx in this.cache)) {
 			const url = this.getUrl(testnet) + '/rawtx/' + this.prevTx.toString('hex');
+			const rr = request('GET', url)
+			console.log('rr',JSON.parse(rr.getBody('utf8')).rawtx)
 			return new Promise((resolve, reject) => {
 				https.get(url, function(res) { 
 					if (res.statusCode < 200 || res.statusCode > 299) {
@@ -175,14 +193,41 @@ class TxIn {
 					const body = []
 					res.on('data', (chunk) => body.push(chunk));
 					// we are done, resolve promise with those joined chunks
-					res.on('end', () => resolve(body.join('')));			
+					res.on('end', () => {
+						let html = body.join('');
+						const raw = Buffer.from(JSON.parse(html).rawtx,'hex');
+						let readable = new Readable();
+						readable.push(raw);
+						readable.push(null);
+						let tx = Tx.parse(readable);
+						resolve( tx );
+					});			
 				});
 			})
 		}
 	}
 	
-	value(testnet=false) {	
-		return this.fetchTx(testnet=testnet)
+	fetchTx(testnet=false) {
+		if (!(this.prevTx in this.cache)) {
+			console.log('no cache');
+			const url = this.getUrl(testnet) + '/rawtx/' + this.prevTx.toString('hex');
+			const req = request('GET', url)
+			const rawtx = JSON.parse(req.getBody('utf8')).rawtx
+			const raw = Buffer.from(rawtx,'hex');
+			let readable = new Readable();
+			readable.push(raw);
+			readable.push(null);
+			let tx = Tx.parse(readable);
+			this.cache[this.prevTx] = tx;
+			
+		};	
+		return this.cache[this.prevTx]
+	}
+	
+	
+	valueAsync(testnet=false) {	
+		return this.fetchTxAsync(testnet=testnet)
+		/*
 			.then( (html) => {
 				const raw = Buffer.from(JSON.parse(html).rawtx,'hex')
 				readable = new Readable()
@@ -191,19 +236,29 @@ class TxIn {
 				tx = Tx.parse(readable);
 				return tx.outputs[this.prevIndex].amount;
 			}).catch((err) => { console.log(err)});
+		*/
+			.then( (tx) => {
+				return tx.outputs[this.prevIndex].amount;
+			}).catch((err) => { console.log(err)});
+	}
+	
+	value(testnet=false) {	
+		tx = this.fetchTx(testnet=testnet)
+		return tx.outputs[this.prevIndex].amount;
 	}
 
-	scriptPubkey(testnet=false) {
-		return this.fetchTx(testnet=testnet)
-		.then( (html) => {
-			const raw = Buffer.from(JSON.parse(html).rawtx,'hex')
-			readable = new Readable()
-			readable.push(raw)
-			readable.push(null)
-			tx = Tx.parse(readable);
+	scriptPubkeyAsync(testnet=false) {
+		return this.fetchTxAsync(testnet=testnet)
+		.then( (tx) => {
 			return tx.outputs[this.prevIndex].scriptPubkey;
 		}).catch((err) => { console.log(err)});
-}
+	}
+	
+	scriptPubkey(testnet=false) {
+		tx = this.fetchTx(testnet=testnet)
+		return tx.outputs[this.prevIndex].scriptPubkey;
+	}		
+
 
 	derSignature(index=0) {
 		const signature = this.scriptSig.signature(index=index)
