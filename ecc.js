@@ -1,9 +1,9 @@
-var helper = require('./helper');
 
 //https://dev.to/maurobringolf/a-neat-trick-to-compute-modulo-of-negative-numbers-111e
 var BN = require('bn.js');
 var hash = require('hash.js');
 var helper = require('./helper')
+var Readable = require('stream').Readable
 
 
 
@@ -61,6 +61,17 @@ class FieldElement {
 		let num;
 		if (f < 0) {
 			num = new BN(Math.pow(this.num, -f)).pow(new BN(this.prime - 2)).mod(new BN(this.prime)).toNumber();
+		} else if (BN.isBN(f)) {
+			let red = BN.red(this.prime)
+			let numred = this.num.toRed(red)
+			//let fred = f.toRed(red)
+			//let one = new BN(1)
+			//let fone = one.toRed(red)
+			//numred = numred.redPow(fred.redSub(fone))
+			let x = numred.redPow(f.mod(this.prime.subn(1)))
+			//const pf = f.mod(this.prime.sub(new BN(1)))
+			//numred = numred.redPow(pf).mod(this.prime);
+			num = x.fromRed();
 		} else {
 			num = Math.pow(this.num, f % (this.prime - 1)) % this.prime;
 			const pf = new BN(f).mod(this.prime.sub(new BN(1)))
@@ -128,24 +139,17 @@ class Point {
 				throw new Error(`Points (${this}, ${other}) are not on the same curve`)
 			}
 			if (this.x.num && !this.x.num.eq(other.x.num)) {
-				//console.log('ne')
 				const s = other.y.sub(this.y).div(other.x.sub(this.x));
 
 				let x = s.pow(2).sub(this.x).sub(other.x);
 				let y = s.mul(this.x.sub(x)).sub(this.y);
-				//console.log('x=x');
 				return new Point(x, y, this.a, this.b);
 
 			}
 			if (this.x.num && this.x.num.eq(other.x.num) && this.y.num.eq(other.y.num)) {
-				//console.log('ae')
 				const s = (this.x.pow(2).rmul(3).add(this.a)).div(this.y.rmul(2));
 				let x = s.pow(2).sub(this.x.rmul(2));
 				let y = s.mul(this.x.sub(x)).sub(this.y);
-				//console.log('adding:', this.x.num.toString(10), this.y.num.toString(10));
-				//this.x = x;
-				//this.y = y;
-				//return this;
 				return new Point(x, y, this.a, this.b);
 			}
 			if (this.x.num && this.x.num.eq(other.x.num) && !this.y.num.eq(other.y.num)) {
@@ -174,10 +178,6 @@ class Point {
 				const s = (3 * Math.pow(this.x, 2) + this.a) / (2 * this.y);
 				x = Math.pow(s, 2) - 2 * this.x;
 				y = s * (this.x - x) - this.y;
-				//this.x = x;
-				//this.y = y;
-				//console.log(this)
-				//return this;
 				return new Point(x, y, this.a, this.b);
 			}
 
@@ -197,13 +197,29 @@ class Point {
 		}
 	}
 }
+
 //let prime = new BN('fffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f ',16);
 //let prime = new BN(223);
+
 class S256Field extends FieldElement {
 
 	constructor(num, prime = new BN('fffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f ', 16)) {
 		super(num, prime);
 		this.prime = prime;
+	}
+
+	pow(f) {
+		return new S256Field(super.pow(f).num)
+	}
+
+	add(f) {
+		return new S256Field(super.add(f).num);
+	}
+
+	sqrt() {
+		const P = new BN('115792089237316195423570985008687907853269984665640564039457584007908834671663',10);
+		const ep = P.addn(1).divn(4)
+		return new S256Field(this.pow(ep).num, this.prime)
 	}
 
 }
@@ -309,6 +325,34 @@ class S256Point extends Point {
 		let total = G.rmul(u).add(this.rmul(v))
 		return total.x.num.eq(sig.r);
 	}
+
+	static parse( secBin ) {
+		const P = new BN('115792089237316195423570985008687907853269984665640564039457584007908834671663',10);
+
+		if (secBin[0] == 4) {
+			x = new BN(secBin.slice(0,15));
+			y = new BN(secBin.slice(15,32));
+			return new S256Point(x,y);
+		}
+		const isEven = secBin[0] == 2;
+		x = new S256Field(secBin.slice(1,secBin.length))
+		const B = new S256Field(7)
+		const alpha = x.pow(3).add(B);
+		const beta = alpha.sqrt()
+		let evenBeta, oddBeta;
+		if (beta.num.isEven()) {
+			evenBeta = beta
+			oddBeta = new S256Field(P.sub(beta.num))
+		} else {
+			evenBeta = new S256Field(P.sub(beta.num))
+			oddBeta = beta;
+		}
+		if (isEven) {
+			return new S256Point(x, evenBeta)
+		} else {
+			return new S256Point(x, oddBeta)
+		}
+	}
 }
 
 class Signature {
@@ -319,7 +363,7 @@ class Signature {
 	
 	der () {
 
-		let rbin = this.r.toBuffer('le');
+		let rbin = this.r.toBuffer('be');
 		if (rbin[0] > 128) {
 			let pref = Buffer.from([0])
 			rbin = Buffer.concat([pref, rbin])
@@ -328,45 +372,48 @@ class Signature {
 		let pref = Buffer.from([2, rbin.length])
 		result = Buffer.concat([pref, rbin]);
 		
-		let sbin = Buffer.alloc(32);
-		sbin.writeInt32BE(this.s, sbin.length - 4);
+		let sbin = this.s.toBuffer('be')
 		if (sbin[0] > 128) {
 			let pref = Buffer.from([0])
 			sbin = Buffer.concat([pref, sbin])
 		}
 		pref = Buffer.from([2, sbin.length])
-		const fresult = Buffer.concat([result, pref, sbin]);
-		pref = Buffer.from([0x30, fresult.length]); 
-		const rresult = Buffer.concat([pref,  fresult])
-		return rresult;
+		result = Buffer.concat([result, pref, sbin]);
+		pref = Buffer.from([0x30, result.length]); 
+		result = Buffer.concat([pref,  result])
+		return result;
 
 	}
 	
-	parse (sig) {
-		const compound = sig.readInt8(0)
+	static parse (sig) {
+		let ss = new Readable();
+		ss.push(sig);
+		ss.push(null);
+
+		const compound = ss.read(1)[0]
 		if (compound != 0x30) {
 			throw new Error('Bad Signature');
 		}
-		const length = sig.readInt8(1)
+		const length = ss.read(1)[0]
 		if (length + 2 != sig.length) {
 			throw new Error('Bad Signature Length');
 		}
-		let marker = sig.readInt8(2) 
+		let marker = ss.read(1)[0] 
 		if (marker != 0x02) {
 			throw new Error('Bad Signature');
 		}
-		const rlength = sig.readInt8(3)
-		const r = sig.slice(4, rlength+4)
-		marker = sig.readUInt8(4+rlength)
+		const rlength = ss.read(1)[0]
+		const r = ss.read(rlength)
+		marker = ss.read(1)[0]
 		if (marker != 0x02) {
 			throw new Error('Bad Signature');
 		}
-		const slength = sig.readInt8(5+rlength)
-		const s = sig.slice(6 + rlength, rlength + slength + 6)
+		const slength = ss.read(1)[0]
+		const s = ss.read(slength)
 		if (sig.length != rlength + slength + 6) {
 			throw new Error("Signature too long");
 		}
-		return sig;
+		return new Signature(new BN(r),new BN(s));
 	}
 }
 

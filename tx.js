@@ -19,36 +19,24 @@ class Tx {
 	
 	static parse(s) {
 		let x = s.read(4)
-		console.log('x',x)
 		const version = helper.littleEndianToInt(x)
 		//this.version = version
-		console.log('version', version)
 		const numInputs = helper.readVarint(s)
-		console.log('numinputs', numInputs)
 		let inputs = []
 		for (let index = 0; index < numInputs; index++) {
 				inputs.push(TxIn.parse(s))
 		}
-		//this.inputs = inputs;
-		console.log('ip', inputs)
-		//const temp = helper.readVarint(s)
-		//console.log('temp', temp)
 		const numOutputs = helper.readVarint(s)
-		//const numOutputs = temp
-		console.log('nop', numOutputs)
 		let outputs = []
 		for (let index = 0; index < numOutputs; index++) {
 				outputs.push(new TxOut(s))
 		}
-		//this.outputs = outputs;
-		console.log('op', outputs)
 		const locktime = helper.littleEndianToInt(s.read(4))
-		console.log('lt',locktime)
 		return new Tx(version, inputs, outputs, locktime)
 	}
 
 	serialize() {
-		result = helper.intToLittleEndian(this.version, 4)
+		let result = helper.intToLittleEndian(this.version, 4)
 		result = Buffer.concat([result , helper.encodeVarint(this.inputs.length)])
 		this.inputs.map( obj => {
 			result = Buffer.concat([result , obj.serialize()])
@@ -88,9 +76,7 @@ class Tx {
 		//TODO cleanup
 		let inputSum = 0;
 		let outputSum = 0;
-		console.log('this.inputs len', this.inputs.length)
 		let x = this.inputs.map(obj => {
-			console.log('input', obj)
 			return obj.value()
 		})
 
@@ -115,7 +101,6 @@ class Tx {
 			const altTx = new Tx(this.version, altTxIns, this.outputs, this.locktime)
 			const result = Buffer.concat([altTx.serialize() , helper.intToLittleEndian(hashType, 4) ])
 			const s256 = helper.doubleSha256(Buffer.from(result));
-			console.log('s256', s256)
 			return new BN(s256, 16) 
 		})
 	}
@@ -147,11 +132,8 @@ class TxIn {
 	
 	static parse(s) {
 		const prevTx = Buffer.from(Array.prototype.reverse.call(new Uint16Array(s.read(32))));
-		console.log('TxIn prevtx', prevTx)
 		const prevIndex = helper.littleEndianToInt(s.read(4))
-		console.log('TxIn prevIndex', prevIndex)
 		const scriptSigLength = helper.readVarint(s)
-		console.log('TxIn ssl',scriptSigLength) 
 		const scriptSig = new script.Script(s.read(scriptSigLength))
 		const x = s.read(4)
 		const sequence = helper.littleEndianToInt(x)
@@ -178,7 +160,6 @@ class TxIn {
 		if (!(this.prevTx in this.cache)) {
 			const url = this.getUrl(testnet) + '/rawtx/' + this.prevTx.toString('hex');
 			const rr = request('GET', url)
-			console.log('rr',JSON.parse(rr.getBody('utf8')).rawtx)
 			return new Promise((resolve, reject) => {
 				https.get(url, function(res) { 
 					if (res.statusCode < 200 || res.statusCode > 299) {
@@ -205,19 +186,15 @@ class TxIn {
 	
 	fetchTx(testnet=false) {
 		if (!(this.prevTx in this.cache)) {
-			console.log('no cache');
 			const url = this.getUrl(testnet) + '/rawtx/' + this.prevTx.toString('hex');
-			console.log(url)
 			const req = request('GET', url)
 			const rawtx = JSON.parse(req.getBody('utf8')).rawtx
 			
 			const raw = Buffer.from(rawtx,'hex');
-			console.log('fetch raw', rawtx)
 			let readable = new Readable();
 			readable.push(raw);
 			readable.push(null);
 			let tx = Tx.parse(readable);
-			console.log('fetched tx', tx);
 			this.cache[this.prevTx] = tx;
 			
 		};	
@@ -227,23 +204,13 @@ class TxIn {
 	
 	valueAsync(testnet=false) {	
 		return this.fetchTxAsync(testnet=testnet)
-		/*
-			.then( (html) => {
-				const raw = Buffer.from(JSON.parse(html).rawtx,'hex')
-				readable = new Readable()
-				readable.push(raw)
-				readable.push(null)
-				tx = Tx.parse(readable);
-				return tx.outputs[this.prevIndex].amount;
-			}).catch((err) => { console.log(err)});
-		*/
 			.then( (tx) => {
 				return tx.outputs[this.prevIndex].amount;
 			}).catch((err) => { console.log(err)});
 	}
 	
 	value(testnet=false) {	
-		tx = this.fetchTx(testnet=testnet)
+		const tx = this.fetchTx(testnet=testnet)
 		return tx.outputs[this.prevIndex].amount;
 	}
 
@@ -255,7 +222,7 @@ class TxIn {
 	}
 	
 	scriptPubkey(testnet=false) {
-		tx = this.fetchTx(testnet=testnet)
+		const tx = this.fetchTx(testnet=testnet)
 		return tx.outputs[this.prevIndex].scriptPubkey;
 	}		
 

@@ -1,3 +1,4 @@
+
 var { assert, expect} = require('chai');
 var ecc = require('../ecc');
 var BN = require('bn.js')
@@ -196,25 +197,6 @@ describe('ECC', function() {
 
 describe('S256Test', function() {
 
-	/*
-	it('test_order', function() {
-		G = new ecc.S256Point(
-			new BN(47),
-			new BN(71), prime=new BN(223));	
-		R = new ecc.S256Point(
-			new BN(116),
-			new BN(55), prime=new BN(223));	
-		
-	
-		N = new BN('FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141', 16);
-		N = new BN(8); 
-		console.log('G',G)
-		nn = G.rmul(N);
-		console.log('test_order', nn.x.num.toString(10))
-		assert.equal(nn.x.num.toString(10) , 116); 
-		
-	})
-	*/
 	it('test_order2', function() {
 		G = new ecc.S256Point(
 			new BN('79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798', 16),
@@ -224,9 +206,7 @@ describe('S256Test', function() {
 		//	new BN(71), prime=new BN(223));		
 	
 		N = new BN('FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141', 16);
-		//console.log(G, G.x.num.toString(10), G.y.num.toString(10));
 		nn = G.rmul(N);
-		//console.log(nn, nn.x.num.toString(10), nn.y.num.toString(10));
 		assert.isUndefined(nn.num); 
 		
 	})
@@ -279,14 +259,14 @@ describe('S256Test', function() {
 
 	})
 	
-})
+//})
 
 
 
 
 
 
-describe('test_address', function(){
+//describe('test_address', function(){
 	
 		G = new ecc.S256Point(
 			new BN('79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798', 16),
@@ -363,17 +343,21 @@ describe('test_address', function(){
 			assert.ok(point.verify(z, new ecc.Signature(r, s)))
 		})
 
-		
+		it('test parse', function() {
+			sec = Buffer.from('0349fc4e631e3624a545de3f89f5d8684c7b8138bd94bdd531d2e213bf016b278a','hex')
+			point = ecc.S256Point.parse(sec)
+			want = new BN('a56c896489c71dfc65701ce25050f542f336893fb8cd15f4e8e5c124dbf58e47', 16)
+			assert.equal(point.y.num.toString(16), want.toString(16))
+		})
 })
 
 describe ('signature', function() {
 	it('sig', function() {
 		sig = new ecc.Signature(new BN(19), new BN(23));
-		der = sig.der();
-		sig2 = sig.parse(der);
-		it('test_der', function() {
-			assert.deepEqual(sig, sig2);
-		})
+		der = sig.der(); 
+		sig2 = ecc.Signature.parse(der);
+		assert.equal(sig.r.toString(16), sig2.r.toString(16));
+		assert.equal(sig.s.toString(16), sig2.s.toString(16));
 	})
 })
 

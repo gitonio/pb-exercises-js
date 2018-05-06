@@ -4,7 +4,7 @@
   "description": "",
   "main": "ecc.js",
   "scripts": {
-    "test": "mocha --watch --grep test_fee2",
+    "test": "mocha --watch --grep signature",
     "testall": "mocha --watch "
   },
   "author": "",
