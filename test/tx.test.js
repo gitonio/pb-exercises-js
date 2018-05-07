@@ -3,10 +3,13 @@ var Tx = require('../tx');
 var Script = require('../script')
 var BN = require('bn.js')
 var Readable = require('stream').Readable
+var ecc = require('../ecc')
+var helper = require('../helper')
 
 
  describe('TxTest', function() {
  
+	
  	rawTx = Buffer.from('0100000001813f79011acb80925dfe69b3def355fe914bd1d96a3f5f71bf8303c6a989c7d1000000006b483045022100ed81ff192e75a3fd2304004dcadb746fa5e24c5031ccfcf21320b0277457c98f02207a986d955c6e0cb35d446a89d3f56100f4d7f67801c31967743a9c8e10615bed01210349fc4e631e3624a545de3f89f5d8684c7b8138bd94bdd531d2e213bf016b278afeffffff02a135ef01000000001976a914bc3b654dca7e56b04dca18f2566cdaf02e8d9ada88ac99c39800000000001976a9141c4bc762dd5423e332166702cb75f40df79fea1288ac19430600','hex')
 	rawTx2 = Buffer.from('76a914bc3b654dca7e56b04dca18f2566cdaf02e8d9ada88ac','hex') 
 	readable = new Readable()
@@ -31,7 +34,7 @@ var Readable = require('stream').Readable
 		assert.deepEqual(tx.inputs[0].sequence, 0xfffffffe)
 	})
 	
-	it('test parse outputs', function() {
+	it('test_parse_outputs', function() {
 		assert.equal(tx.outputs.length,2)
 		want = 32454049
 		assert.equal(tx.outputs[0].amount, want)
@@ -193,6 +196,34 @@ var Readable = require('stream').Readable
 			assert.deepEqual(got,want)
 			
 		
+	})
+
+	it('test verify input', function() {
+		rawTx = Buffer.from('0100000001813f79011acb80925dfe69b3def355fe914bd1d96a3f5f71bf8303c6a989c7d1000000006b483045022100ed81ff192e75a3fd2304004dcadb746fa5e24c5031ccfcf21320b0277457c98f02207a986d955c6e0cb35d446a89d3f56100f4d7f67801c31967743a9c8e10615bed01210349fc4e631e3624a545de3f89f5d8684c7b8138bd94bdd531d2e213bf016b278afeffffff02a135ef01000000001976a914bc3b654dca7e56b04dca18f2566cdaf02e8d9ada88ac99c39800000000001976a9141c4bc762dd5423e332166702cb75f40df79fea1288ac19430600','hex')
+		readable = new Readable()
+		readable.push(rawTx)
+		readable.push(null)
+		
+		tx = Tx.Tx.parse(readable)
+		assert.ok(tx.verifyInput(0))
+	})
+	
+	it('test_sign_input', function() {
+		privateKey = new ecc.PrivateKey(new BN(8675309))
+		txIns = []
+		prevTx = Buffer.from('0025bc3c0fa8b7eb55b9437fdbd016870d18e0df0ace7bc9864efc38414147c8','hex')
+		txIns.push(new Tx.TxIn(prevTx, 0, Buffer.from([]), 0xffffffff))
+		console.log(txIns)
+		txOuts = []
+		h160 = helper.decodeBase58('mzx5YhAH9kNHtcN481u6WkjeHjYtVeKVh2')
+		txOuts.push(new Tx.TxOut(.99*100000000,helper.p2pkhScript(h160)))
+		console.log('helper:',helper.p2pkhScript(h160))
+		h160 = helper.decodeBase58('mnrVtF8DWjMu839VW3rBfgYaAfKk8983Xf')
+		txOuts.push(new Tx.TxOut(.1*100000000,helper.p2pkhScript(h160)))
+		console.log(txOuts)
+		tx = new Tx.Tx(1, txIns, txOuts, 0, true)
+		console.log(tx)
+		assert.isTrue(tx.signInput(0, privateKey, 1))
 	})
 	 
  })

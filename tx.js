@@ -5,15 +5,18 @@ var script = require('./script')
 var Readable = require('stream').Readable
 var BN = require('bn.js')
 var request = require('sync-request');
+var ecc = require('./ecc')
 
 class Tx {
-	constructor(version, inputs, outputs, locktime, testnet=false) {
+	constructor(version, inputs, outputs, locktime, testnet =  false) {
 
 	
 		this.version = version
 		this.inputs = inputs;
 		this.outputs = outputs;
-		this.locktime = locktime
+		this.locktime = locktime;
+		this.testnet = testnet;
+		console.log('testnet',this.testnet)
 	
 	}	
 	
@@ -29,7 +32,7 @@ class Tx {
 		const numOutputs = helper.readVarint(s)
 		let outputs = []
 		for (let index = 0; index < numOutputs; index++) {
-				outputs.push(new TxOut(s))
+				outputs.push(TxOut.parse(s))
 		}
 		const locktime = helper.littleEndianToInt(s.read(4))
 		return new Tx(version, inputs, outputs, locktime)
@@ -105,17 +108,39 @@ class Tx {
 		})
 	}
 	
-		sigHash(inputIndex, hashType) {
+	sigHash(inputIndex, hashType) {
 		let altTxIns = []
 		this.inputs.map( obj => altTxIns.push(new TxIn(obj.prevTx, obj.prevIndex, Buffer.from([]), obj.sequence ,{})))
 		let signingInput = altTxIns[inputIndex];
+		console.log('sigh testnet', this.testnet)
 		const scriptPubkey = signingInput.scriptPubkey(this.testnet)
-			signingInput.scriptSig = scriptPubkey;
-			const altTx = new Tx(this.version, altTxIns, this.outputs, this.locktime)
-			const result = Buffer.concat([altTx.serialize() , helper.intToLittleEndian(hashType, 4) ])
-			const s256 = helper.doubleSha256(Buffer.from(result));
-			return new BN(s256, 16) 
-		
+		signingInput.scriptSig = scriptPubkey;
+		console.log('script pub key', scriptPubkey)
+		const altTx = new Tx(this.version, altTxIns, this.outputs, this.locktime, this.testnet)
+		const result = Buffer.concat([altTx.serialize() , helper.intToLittleEndian(hashType, 4) ])
+		const s256 = helper.doubleSha256(Buffer.from(result));
+		return new BN(s256, 16) 
+	}
+
+	verifyInput(inputIndex) {
+		const txIn = this.inputs[inputIndex];
+		console.log('final', txIn.secPubkey())
+		const point = ecc.S256Point.parse(txIn.secPubkey());
+		const signature = ecc.Signature.parse(txIn.derSignature());
+		const hashType = txIn.hashType();
+		const z = this.sigHash(inputIndex, hashType);
+		return point.verify(z, signature);
+	}
+
+	signInput(inputIndex, privateKey, hashType) {
+		const z = this.sigHash(inputIndex,hashType);
+		const der = privateKey.sign(z).der();
+		const sig = Buffer.concat([der, Buffer.from([hashType])])
+		const sec = privateKey.point.sec();
+		const ss = Buffer.concat([sig,sec])
+		const scriptSig = new script.Script([sig,sec]);
+		this.inputs[inputIndex].scriptSig = scriptSig;
+		return this.verifyInput(inputIndex);
 	}
 
 }
@@ -134,7 +159,7 @@ class TxIn {
 		const prevTx = Buffer.from(Array.prototype.reverse.call(new Uint16Array(s.read(32))));
 		const prevIndex = helper.littleEndianToInt(s.read(4))
 		const scriptSigLength = helper.readVarint(s)
-		const scriptSig = new script.Script(s.read(scriptSigLength))
+		const scriptSig =  script.Script.parse(s.read(scriptSigLength))
 		const x = s.read(4)
 		const sequence = helper.littleEndianToInt(x)
 		const cache = {}
@@ -145,7 +170,8 @@ class TxIn {
 		const ta = Buffer.from(this.prevTx);
 		let result = Array.prototype.reverse.call(ta)
 		result = Buffer.concat([result , helper.intToLittleEndian(this.prevIndex, 4)]);
-		const rawScriptSig = this.scriptSig.serialize();
+		console.log('txin this', this.scriptSig)
+		const rawScriptSig = this.scriptSig === undefined ? Buffer.from([]) : this.scriptSig.serialize();
 		result = Buffer.concat([result, helper.encodeVarint(rawScriptSig.length)])
 		result = Buffer.concat([result, rawScriptSig]);
 		result = Buffer.concat([result, helper.intToLittleEndian(this.sequence,4)])
@@ -189,7 +215,6 @@ class TxIn {
 			const url = this.getUrl(testnet) + '/rawtx/' + this.prevTx.toString('hex');
 			const req = request('GET', url)
 			const rawtx = JSON.parse(req.getBody('utf8')).rawtx
-			
 			const raw = Buffer.from(rawtx,'hex');
 			let readable = new Readable();
 			readable.push(raw);
@@ -243,10 +268,16 @@ class TxIn {
 }
 
 class TxOut {
-	constructor(s) {
-		this.amount = helper.littleEndianToInt(s.read(8))
+	constructor(amount, scriptPubkey) {
+		this.amount = amount;
+		this.scriptPubkey = new script.Script(scriptPubkey);
+	}
+
+	static parse(s) {
+		const amount = helper.littleEndianToInt(s.read(8))
 		const scriptPubkeyLength = helper.readVarint(s)
-		this.scriptPubkey = new script.Script(s.read(scriptPubkeyLength))
+		const scriptPubkey = s.read(scriptPubkeyLength);
+		return new TxOut(amount, scriptPubkey);
 	}
 
 	serialize() {
@@ -260,3 +291,4 @@ class TxOut {
 	
 module.exports.Tx = Tx;
 module.exports.TxIn = TxIn;
+module.exports.TxOut = TxOut;

@@ -51,6 +51,9 @@ function encodeBase58Checksum(s) {
 	return encodeBase58(total);
 }
 
+function p2pkhScript(h160) {
+    return Buffer.concat([Buffer.from([0x76, 0xa9, 0x14]),h160, Buffer.from([0x88, 0xac])])
+}
 function decodeBase58(s) {
 	let num = new BN(0);
 	const base = new BN(58);
@@ -130,6 +133,7 @@ module.exports.hash160 = hash160;
 module.exports.doubleSha256 = doubleSha256;
 module.exports.encodeBase58 = encodeBase58;
 module.exports.encodeBase58Checksum = encodeBase58Checksum;
+module.exports.p2pkhScript = p2pkhScript;
 module.exports.decodeBase58 = decodeBase58;
 module.exports.strToBytes = strToBytes;
 module.exports.bytesToString = bytesToString;

@@ -121,7 +121,12 @@ OP_CODES = {
 }
 
 class Script {
-	constructor(ss) {
+
+  constructor(elements) {
+    this.elements = elements;
+  }
+  
+	static parse (ss) {
 		let s = new Readable()
 		s.push(ss)
 		s.push(null)
@@ -137,7 +142,7 @@ class Script {
 			}
 			current = s.read(1)
 		}
-		this.elements = elements;	
+		return new Script(elements);	
 	}
 	
 	type () {
