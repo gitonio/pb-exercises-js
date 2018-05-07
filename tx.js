@@ -16,7 +16,6 @@ class Tx {
 		this.outputs = outputs;
 		this.locktime = locktime;
 		this.testnet = testnet;
-		console.log('testnet',this.testnet)
 	
 	}	
 	
@@ -112,10 +111,8 @@ class Tx {
 		let altTxIns = []
 		this.inputs.map( obj => altTxIns.push(new TxIn(obj.prevTx, obj.prevIndex, Buffer.from([]), obj.sequence ,{})))
 		let signingInput = altTxIns[inputIndex];
-		console.log('sigh testnet', this.testnet)
 		const scriptPubkey = signingInput.scriptPubkey(this.testnet)
 		signingInput.scriptSig = scriptPubkey;
-		console.log('script pub key', scriptPubkey)
 		const altTx = new Tx(this.version, altTxIns, this.outputs, this.locktime, this.testnet)
 		const result = Buffer.concat([altTx.serialize() , helper.intToLittleEndian(hashType, 4) ])
 		const s256 = helper.doubleSha256(Buffer.from(result));
@@ -124,7 +121,6 @@ class Tx {
 
 	verifyInput(inputIndex) {
 		const txIn = this.inputs[inputIndex];
-		console.log('final', txIn.secPubkey())
 		const point = ecc.S256Point.parse(txIn.secPubkey());
 		const signature = ecc.Signature.parse(txIn.derSignature());
 		const hashType = txIn.hashType();
@@ -150,7 +146,7 @@ class TxIn {
 	constructor (prevTx, prevIndex, scriptSig, sequence, cache){
 		this.prevTx = prevTx;
 		this.prevIndex = prevIndex;
-		this.scriptSig = scriptSig;
+		this.scriptSig = script.Script.parse(scriptSig);
 		this.sequence = sequence;
 		this.cache = cache;
 	}
@@ -159,7 +155,7 @@ class TxIn {
 		const prevTx = Buffer.from(Array.prototype.reverse.call(new Uint16Array(s.read(32))));
 		const prevIndex = helper.littleEndianToInt(s.read(4))
 		const scriptSigLength = helper.readVarint(s)
-		const scriptSig =  script.Script.parse(s.read(scriptSigLength))
+		const scriptSig =  s.read(scriptSigLength)
 		const x = s.read(4)
 		const sequence = helper.littleEndianToInt(x)
 		const cache = {}
@@ -170,7 +166,6 @@ class TxIn {
 		const ta = Buffer.from(this.prevTx);
 		let result = Array.prototype.reverse.call(ta)
 		result = Buffer.concat([result , helper.intToLittleEndian(this.prevIndex, 4)]);
-		console.log('txin this', this.scriptSig)
 		const rawScriptSig = this.scriptSig === undefined ? Buffer.from([]) : this.scriptSig.serialize();
 		result = Buffer.concat([result, helper.encodeVarint(rawScriptSig.length)])
 		result = Buffer.concat([result, rawScriptSig]);

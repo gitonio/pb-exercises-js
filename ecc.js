@@ -261,7 +261,7 @@ class S256Point extends Point {
 
 	}
 
-	sec(compressed) {
+	sec(compressed=true) {
 		if (compressed) {
 			let ba = this.x.num.toBuffer('be')
 			if (this.y.num.mod(new BN(2)).toString()==0) {
@@ -330,12 +330,12 @@ class S256Point extends Point {
 		const P = new BN('115792089237316195423570985008687907853269984665640564039457584007908834671663',10);
 
 		if (secBin[0] == 4) {
-			x = new BN(secBin.slice(0,15));
-			y = new BN(secBin.slice(15,32));
+			let x = new BN(secBin.slice(0,15));
+			let y = new BN(secBin.slice(15,32));
 			return new S256Point(x,y);
 		}
 		const isEven = secBin[0] == 2;
-		x = new S256Field(secBin.slice(1,secBin.length))
+		let x = new S256Field(secBin.slice(1,secBin.length))
 		const B = new S256Field(7)
 		const alpha = x.pow(3).add(B);
 		const beta = alpha.sqrt()

@@ -209,20 +209,17 @@ var helper = require('../helper')
 	})
 	
 	it('test_sign_input', function() {
+		this.timeout(0)
 		privateKey = new ecc.PrivateKey(new BN(8675309))
 		txIns = []
 		prevTx = Buffer.from('0025bc3c0fa8b7eb55b9437fdbd016870d18e0df0ace7bc9864efc38414147c8','hex')
 		txIns.push(new Tx.TxIn(prevTx, 0, Buffer.from([]), 0xffffffff))
-		console.log(txIns)
 		txOuts = []
 		h160 = helper.decodeBase58('mzx5YhAH9kNHtcN481u6WkjeHjYtVeKVh2')
 		txOuts.push(new Tx.TxOut(.99*100000000,helper.p2pkhScript(h160)))
-		console.log('helper:',helper.p2pkhScript(h160))
 		h160 = helper.decodeBase58('mnrVtF8DWjMu839VW3rBfgYaAfKk8983Xf')
 		txOuts.push(new Tx.TxOut(.1*100000000,helper.p2pkhScript(h160)))
-		console.log(txOuts)
 		tx = new Tx.Tx(1, txIns, txOuts, 0, true)
-		console.log(tx)
 		assert.isTrue(tx.signInput(0, privateKey, 1))
 	})
 	 

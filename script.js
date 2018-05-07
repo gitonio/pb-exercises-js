@@ -212,31 +212,12 @@ class Script {
 		if (sigType == 'p2pkh sig') {
 			return this.elements[1];
 		} else if (sigType == 'p2sh sig') {
-			const redeemScript = this.parse(this.elements[this.elements.length-1])
-			return redeemScript[index + 1];
+			const redeemScript = Script.parse(this.elements[this.elements.length-1])
+			return redeemScript.elements[index + 1];
 		} 
 		
 	}
 	
-	parse (ss) {
-		let s = new Readable()
-		s.push(ss)
-		s.push(null)
-		let elements = []
-		let current = s.read(1)
-		let opCode = 0;
-		while (current != null) {
-			opCode = current[0]
-			if (opCode > 0 && opCode <= 75) {
-				elements.push(s.read(opCode))
-			} else {
-				elements.push(opCode)
-			}
-			current = s.read(1)
-		}
-		return elements;	
-
-	}
 	
 	
 }
