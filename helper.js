@@ -127,6 +127,18 @@ function encodeVarint(i) {
     }
 }
 
+function h160ToP2pkhAddress(h160, testnet=false) {
+
+    prefix = testnet ?  Buffer.from([0x6f]) : Buffer.from([0x00])
+    return encodeBase58Checksum(Buffer.concat([prefix, h160]))
+}
+
+function h160ToP2shAddress(h160, testnet=false) {
+
+    prefix = testnet ?  Buffer.from([0xc4]) : Buffer.from([0x05])
+    return encodeBase58Checksum(Buffer.concat([prefix, h160]))
+}
+
 module.exports.SIGHASH_ALL = SIGHASH_ALL;
 
 module.exports.hash160 = hash160;
@@ -142,3 +154,5 @@ module.exports.littleEndianToInt = littleEndianToInt;
 module.exports.intToLittleEndian = intToLittleEndian;
 module.exports.readVarint = readVarint;
 module.exports.encodeVarint = encodeVarint;
+module.exports.h160ToP2pkhAddress = h160ToP2pkhAddress;
+module.exports.h160ToP2shAddress = h160ToP2shAddress;
