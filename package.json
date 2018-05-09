@@ -4,7 +4,7 @@
   "description": "",
   "main": "ecc.js",
   "scripts": {
-    "test": "mocha --watch --grep test_p2sh_address2",
+    "test": "mocha --watch --grep test_new_tx",
     "testall": "mocha --watch "
   },
   "author": "",

@@ -365,9 +365,7 @@ class Signature {
 
 		let rbin = this.r.toBuffer('be');
 		let pref = Buffer.from([])
-		console.log(rbin[0])
 		if (rbin[0] > 128) {
-			console.log('in')
 			pref = Buffer.from([0])
 			rbin = Buffer.concat([pref, rbin])
 		}

@@ -5,6 +5,7 @@ var script = require('./script.js')
 var BN = require('bn.js')
 var Readable = require('stream').Readable
 
+
 // Exercise 1.1
 //Step 1
 txIns = []
@@ -26,21 +27,13 @@ hashType = 1
 z = txObj.sigHash(0,hashType)
 secret = new BN(8675309)
 pk = new ecc.PrivateKey(secret)
-//console.log('sign', pk.sign(z),'\n')
 der = pk.sign(z).der()
-//console.log('der', der.toString('hex'),'\n')
 
 sig = Buffer.concat([der,Buffer.from([hashType])])
-//console.log('sig',sig.toString('hex'),'\n')
 sec = pk.point.sec()
-//console.log('sec',sec.toString('hex'),'\n')
 scriptSig = Buffer.concat([Buffer.from([sig.length]), sig, Buffer.from([sec.length]), sec])
-//console.log('script_sig', scriptSig.toString('hex'),'\n')
 scriptSig = Buffer.concat([Buffer.from([scriptSig.length]),scriptSig])
-//console.log('script_sig', scriptSig.toString('hex'),'\n')
 txObj.inputs[0].scriptSig = script.Script.parse(scriptSig)
-//console.log('ss',txObj.inputs[0].scriptSig.toString(),'\n')
-//console.log('inp ser', txObj.inputs[0].serialize().toString('hex'),'\n')
 console.log(txObj.serialize().toString('hex'))
 
 
@@ -76,15 +69,14 @@ txObj = new tx.Tx(1, txIns, txOuts, 0, true)
 
 //# Step 3
 txObj.signInput(0, priv, 1)
-//console.log(priv.point.address(true, true),priv.point.address(true,true) )
 
  if (priv.point.address(true,true) !== changeAddress) {
      throw new Error('Private Key does not correspond to Change Address, check priv_key and change_address')
  }
-console.log('Script', txIns[0].scriptPubkey(true).toString())
-// if (txIns[0].scriptPubkey(true).elements[2] != helper.decodeBase58(changeAddress) ){
-//     throw new Error('Output is not something you can spend with this private key. Check that the prev_tx and prev_index are correct')
-// }
+
+if (txIns[0].scriptPubkey(true).elements[2].toString('hex').toString('hex') !== helper.decodeBase58(changeAddress).toString('hex') ){
+    throw new Error('Output is not something you can spend with this private key. Check that the prev_tx and prev_index are correct')
+}
 
  if (txObj.fee() > .05 * 100000000 || txObj.fee() <= 0) {
      throw new Error(`Check that the change amount is reasonable. Fee is ${txObj.fee()}`)
@@ -93,7 +85,6 @@ console.log('Script', txIns[0].scriptPubkey(true).toString())
 console.log(txObj.serialize().toString('hex'))
 
 //Exercise 4.1
-
 hexRedeemScript = '5221022626e955ea6ea6d98850c994f9107b036b1334f18ca8830bfff1295d21cfdb702103b287eaf122eea69030a0e9feed096bed8045c8b98bec453e1ffac7fbdbd4bb7152ae'
 redeemScript = Buffer.from(hexRedeemScript,'hex')
 h160 = helper.hash160(redeemScript)
@@ -137,3 +128,4 @@ toSign = helper.doubleSha256(ser)
 console.log(toSign)
 z = new BN(toSign,'hex')
 console.log(point.verify(z , sig))
+

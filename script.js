@@ -209,7 +209,6 @@ class Script {
 	
 	secPubkey(index = 0) {
     const sigType = this.type();
-    console.log('sigType', sigType)
 		if (sigType == 'p2pkh sig') {
 			return this.elements[1];
 		} else if (sigType == 'p2sh sig') {
@@ -225,7 +224,7 @@ class Script {
 
 Script.prototype.toString = function(){
 		let result = ''
-		this.elements.map( obj => {
+   this.elements.map( obj => {
 			if (typeof obj === "number") {
 				result =  result + ' ' + OP_CODES[obj]
 			} else {
