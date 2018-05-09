@@ -364,17 +364,20 @@ class Signature {
 	der () {
 
 		let rbin = this.r.toBuffer('be');
+		let pref = Buffer.from([])
+		console.log(rbin[0])
 		if (rbin[0] > 128) {
-			let pref = Buffer.from([0])
+			console.log('in')
+			pref = Buffer.from([0])
 			rbin = Buffer.concat([pref, rbin])
 		}
-		let result = Buffer.alloc(34);
-		let pref = Buffer.from([2, rbin.length])
-		result = Buffer.concat([pref, rbin]);
+		//let result = Buffer.alloc(34);
+		pref = Buffer.from([2, rbin.length])
+		let result = Buffer.concat([pref, rbin]);
 		
 		let sbin = this.s.toBuffer('be')
 		if (sbin[0] > 128) {
-			let pref = Buffer.from([0])
+			pref = Buffer.from([0])
 			sbin = Buffer.concat([pref, sbin])
 		}
 		pref = Buffer.from([2, sbin.length])

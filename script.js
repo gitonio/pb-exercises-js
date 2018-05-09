@@ -125,7 +125,7 @@ class Script {
   constructor(elements) {
     this.elements = elements;
   }
-  
+
 	static parse (ss) {
 		let s = new Readable()
 		s.push(ss)
@@ -208,7 +208,8 @@ class Script {
 	}
 	
 	secPubkey(index = 0) {
-		const sigType = this.type();
+    const sigType = this.type();
+    console.log('sigType', sigType)
 		if (sigType == 'p2pkh sig') {
 			return this.elements[1];
 		} else if (sigType == 'p2sh sig') {

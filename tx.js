@@ -121,6 +121,7 @@ class Tx {
 
 	verifyInput(inputIndex) {
 		const txIn = this.inputs[inputIndex];
+		console.log('txIn', txIn)
 		const point = ecc.S256Point.parse(txIn.secPubkey());
 		const signature = ecc.Signature.parse(txIn.derSignature());
 		const hashType = txIn.hashType();
@@ -132,12 +133,14 @@ class Tx {
 		const z = this.sigHash(inputIndex,hashType);
 		const der = privateKey.sign(z).der();
 		const sig = Buffer.concat([der, Buffer.from([hashType])])
+		console.log('sig', sig.toString('hex'))
 		const sec = privateKey.point.sec();
-		const ss = Buffer.concat([sig,sec])
-		const arr = new Uint16Array(ss)
+		const ss = [sig,sec]
+		const arr = Array.prototype.slice.call(ss, 0)
 		//console.log(arr)
-		const scriptSig = new script.Script(arr);
-		console.log(scriptSig)
+		//const scriptSig = script.Script.parse(ss);
+		const scriptSig = new script.Script(ss)
+		console.log('scriptSig', scriptSig.toString())
 		this.inputs[inputIndex].scriptSig = scriptSig;
 		return this.verifyInput(inputIndex);
 	}
