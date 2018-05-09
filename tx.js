@@ -134,7 +134,10 @@ class Tx {
 		const sig = Buffer.concat([der, Buffer.from([hashType])])
 		const sec = privateKey.point.sec();
 		const ss = Buffer.concat([sig,sec])
-		const scriptSig = new script.Script([sig,sec]);
+		const arr = new Uint16Array(ss)
+		//console.log(arr)
+		const scriptSig = new script.Script(arr);
+		console.log(scriptSig)
 		this.inputs[inputIndex].scriptSig = scriptSig;
 		return this.verifyInput(inputIndex);
 	}

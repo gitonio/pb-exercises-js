@@ -425,8 +425,8 @@ let N = new BN('FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141
 class PrivateKey {
 	
 	constructor(secret) {
-		this.secret = secret;		
-		this.point = G.rmul(new BN(secret));
+		this.secret = new BN(secret, 10);		
+		this.point = G.rmul(new BN(secret, 10));
 	}
 	
 	sign(z) {
