@@ -32,3 +32,8 @@ console.log('BIP91: ', (version >> 4 & 1) == 1)
 console.log('BIP141: ', (version >> 1 & 1) == 1)
 
 
+bits = Buffer.from('e93c0118','hex')
+const exponent = new BN(bits[bits.length-1])
+const coefficient = new BN(helper.littleEndianToInt(bits.slice(0,3)))
+target = (new BN(2)).pow(exponent.subn(3).muln(8)).mul(coefficient) 
+console.log(target.toString(16))

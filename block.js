@@ -57,10 +57,8 @@ class Block {
 
     target() {
         const exponent = new BN(this.bits[this.bits.length-1])
-        console.log('exponent', exponent.toString(10))
         const coefficient = new BN(helper.littleEndianToInt(this.bits.slice(0,3)))
-        console.log('coef', coefficient.toString(10))
-        return (coefficient.muln(2)).pow((exponent.subn(3)).muln(8)) 
+        return (new BN(2)).pow(exponent.subn(3).muln(8)).mul(coefficient) 
     }
 }
 
