@@ -139,6 +139,29 @@ class Tx {
 		return this.verifyInput(inputIndex);
 	}
 
+	isCoinbase() {
+		if (this.inputs.length != 1) {
+			return false;
+		} 
+		const firstInput = this.inputs[0]
+		if (firstInput.prevTx.toString('hex') != Buffer.alloc(32).toString('hex')) {
+			return false;
+		}
+		if(firstInput.prevIndex != 0xffffffff) {
+			return false;
+		}
+		return true;
+	}
+
+	coinbaseHeight() {
+		if (!this.isCoinbase()) {
+			return undefined;
+		}
+		const firstInput = this.inputs[0];
+		const firstElement = firstInput.scriptSig.elements[0];
+		return helper.littleEndianToInt(firstElement);
+	}
+
 }
  
 class TxIn {
