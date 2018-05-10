@@ -81,9 +81,24 @@ describe('BlockTest', function() {
         readable.push(blockRaw)
         readable.push(null)
         b = block.parse(readable)
-        console.log('target', b.target())
-        console.log(new BN('13ce9000000000000000000000000000000000000000000', 16).toString(10))
-        assert.deepEqual(b.target(), new BN('13ce9000000000000000000000000000000000000000000', 16) )
+       assert.deepEqual(b.target(), new BN('13ce9000000000000000000000000000000000000000000', 16) )
+     })
+
+     it('test_checkPOW', function() {
+        blockRaw = Buffer.from('04000000fbedbbf0cfdaf278c094f187f2eb987c86a199da22bbb20400000000000000007b7697b29129648fa08b4bcd13c9d5e60abb973a1efac9c8d573c71c807c56c3d6213557faa80518c3737ec1','hex')
+        readable = new Readable()
+        readable.push(blockRaw)
+        readable.push(null)
+        b = block.parse(readable)
+        assert.isTrue(b.checkPOW() )
+
+        blockRaw = Buffer.from('04000000fbedbbf0cfdaf278c094f187f2eb987c86a199da22bbb20400000000000000007b7697b29129648fa08b4bcd13c9d5e60abb973a1efac9c8d573c71c807c56c3d6213557faa80518c3737ec0','hex')
+        readable = new Readable()
+        readable.push(blockRaw)
+        readable.push(null)
+        b = block.parse(readable)
+        assert.isFalse(b.checkPOW() )
+
      })
 
 })

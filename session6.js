@@ -33,7 +33,51 @@ console.log('BIP141: ', (version >> 1 & 1) == 1)
 
 
 bits = Buffer.from('e93c0118','hex')
-const exponent = new BN(bits[bits.length-1])
-const coefficient = new BN(helper.littleEndianToInt(bits.slice(0,3)))
+let exponent = new BN(bits[bits.length-1])
+let coefficient = new BN(helper.littleEndianToInt(bits.slice(0,3)))
 target = (new BN(2)).pow(exponent.subn(3).muln(8)).mul(coefficient) 
 console.log(target.toString(16))
+
+bitsMin = Buffer.from('ffff001d','hex')
+exponentMin = new BN(bitsMin[bitsMin.length-1])
+coefficientMin = new BN(helper.littleEndianToInt(bitsMin.slice(0,3)))
+min = (new BN(2)).pow(exponentMin.subn(3).muln(8)).mul(coefficientMin)
+console.log(min.toString(16))
+
+difficulty = min.div(target)
+console.log(difficulty.toString(10))
+
+// Exercise 6.1
+
+bits = Buffer.from('f2881718','hex')
+exponent = new BN(bits[bits.length-1])
+coefficient = new BN(helper.littleEndianToInt(bits.slice(0,3)))
+target = (new BN(2)).pow(exponent.subn(3).muln(8)).mul(coefficient) 
+console.log(target.toString(16))
+
+bitsMin = Buffer.from('ffff001d','hex')
+exponentMin = new BN(bitsMin[bitsMin.length-1])
+coefficientMin = new BN(helper.littleEndianToInt(bitsMin.slice(0,3)))
+min = (new BN(2)).pow(exponentMin.subn(3).muln(8)).mul(coefficientMin)
+console.log(min.toString(16))
+
+difficulty = min.div(target)
+console.log(difficulty.toString(10))
+
+// Exercise 7.2
+
+
+hexBlock = '04000000fbedbbf0cfdaf278c094f187f2eb987c86a199da22bbb20400000000000000007b7697b29129648fa08b4bcd13c9d5e60abb973a1efac9c8d573c71c807c56c3d6213557faa80518c3737ec1'
+binBlock = Buffer.from(hexBlock,'hex')
+sha = Buffer.from( helper.doubleSha256(binBlock),'hex' )
+proof = helper.littleEndianToInt(sha)
+console.log(proof)
+
+// Version Signaling Example
+readable = new Readable()
+readable.push(binBlock)
+readable.push(null)
+   
+b = block.Block.parse(readable)
+target = b.target()
+console.log(proof < target)

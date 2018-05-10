@@ -60,6 +60,17 @@ class Block {
         const coefficient = new BN(helper.littleEndianToInt(this.bits.slice(0,3)))
         return (new BN(2)).pow(exponent.subn(3).muln(8)).mul(coefficient) 
     }
+
+    difficulty() {
+        const lowest = 0xffff * Math.pow(2,8 * 0x1d-3);
+        return lowest / this.target();
+    }
+
+    checkPOW() {
+        const sha = helper.doubleSha256(this.serialize());
+        const proof = helper.littleEndianToInt(Buffer.from(sha,'hex'))
+        return proof < this.target()
+    }
 }
 
 module.exports.Block = Block;
