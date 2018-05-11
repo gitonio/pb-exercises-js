@@ -139,6 +139,48 @@ function h160ToP2shAddress(h160, testnet=false) {
     return encodeBase58Checksum(Buffer.concat([prefix, h160]))
 }
 
+function merkleParent( hash1, hash2 ) {
+    return Buffer.from(doubleSha256(Buffer.concat([hash1, hash2])),'hex')
+}
+
+function merkleParentLevel( hashList ) {
+    hashList = hashList.reduce(function(result, value, index, array) {
+        if (index % 2 === 0)
+          result.push(array.slice(index, index + 2));
+        return result;
+      }, []);
+    if (hashList[hashList.length-1].length == 1) {
+        hashList[hashList.length-1].push(hashList[hashList.length-1][0])
+    }
+     
+    let parentLevel = []
+    hashList.map(obj => {
+        hashBin1 = Buffer.from(obj[0],'hex')  
+        hashBin2 = Buffer.from(obj[1],'hex')
+        parent = merkleParent(hashBin1, hashBin2)
+        parentLevel.push(parent.toString('hex'))
+    })
+    return parentLevel;
+}
+
+function merkleRoot( hashList ) {
+    let currentLevel = hashList;
+    while (currentLevel.length > 1) {
+        currentLevel = merkleParentLevel(currentLevel);
+    }
+    return currentLevel[0];
+}
+
+function merklePath(index, total) {
+    let path = [];
+    const numLevels = Math.ceil(Math.log2(total))
+    for (let i = 0; i < numLevels; i++) {
+        path.push(index)
+        index = Math.floor(index / 2)
+    }
+    return path;
+}
+
 module.exports.SIGHASH_ALL = SIGHASH_ALL;
 
 module.exports.hash160 = hash160;
@@ -156,3 +198,7 @@ module.exports.readVarint = readVarint;
 module.exports.encodeVarint = encodeVarint;
 module.exports.h160ToP2pkhAddress = h160ToP2pkhAddress;
 module.exports.h160ToP2shAddress = h160ToP2shAddress;
+module.exports.merkleParent = merkleParent;
+module.exports.merkleParentLevel = merkleParentLevel;
+module.exports.merkleRoot = merkleRoot;
+module.exports.merklePath = merklePath;
