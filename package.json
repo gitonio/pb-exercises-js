@@ -4,7 +4,7 @@
   "description": "",
   "main": "ecc.js",
   "scripts": {
-    "test": "mocha --watch --grep test_merkle",
+    "test": "mocha --watch --grep test_calculate_merkle_tree",
     "testall": "mocha --watch "
   },
   "author": "",

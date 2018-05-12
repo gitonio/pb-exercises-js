@@ -4,16 +4,41 @@ var BN = require('bn.js');
 SIGHASH_ALL = 1;
 BASE58_ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
 
+function hexToBinHashlist(hashList) {
+
+    hashList = hashList.map(obj => 
+         Buffer.from(obj,'hex')
+    )
+
+    console.log('hl',hl)
+
+    hashList = hashList.reduce(function(result, value, index, array) {
+        if (index % 2 === 0)
+          result.push(array.slice(index, index + 2));
+        return result;
+      }, []);
+
+      if (hashList[hashList.length-1].length == 1) {
+        hashList[hashList.length-1].push(hashList[hashList.length-1][0])
+    }
+
+
+    // hl = hashList.map(obj => {
+    //     const arr = [Buffer.from(obj[0],'hex') ,
+    //     Buffer.from(obj[1],'hex') ]
+    //     return arr;
+    // })
+
+    return hashList;
+
+}
 
 function hash160(s) {
-		//s = Buffer.from(s, 'hex')
-
 	const sha = Buffer.from(hash.sha256().update(s).digest('hex'),'hex');
     return hash.ripemd160().update(sha).digest('hex');
 }
 
 function doubleSha256(s) {
-	//s = Buffer.from(s, 'hex')
     let sha1 = Buffer.from(hash.sha256().update(s).digest('hex'), 'hex');
     return hash.sha256().update(sha1).digest('hex');
 }
@@ -54,6 +79,7 @@ function encodeBase58Checksum(s) {
 function p2pkhScript(h160) {
     return Buffer.concat([Buffer.from([0x76, 0xa9, 0x14]),h160, Buffer.from([0x88, 0xac])])
 }
+
 function decodeBase58(s) {
 	let num = new BN(0);
 	const base = new BN(58);
@@ -149,17 +175,25 @@ function merkleParentLevel( hashList ) {
           result.push(array.slice(index, index + 2));
         return result;
       }, []);
-    if (hashList[hashList.length-1].length == 1) {
+
+     if (hashList[hashList.length-1].length == 1) {
         hashList[hashList.length-1].push(hashList[hashList.length-1][0])
     }
-     
+
+
     let parentLevel = []
     hashList.map(obj => {
-        hashBin1 = Buffer.from(obj[0],'hex')  
-        hashBin2 = Buffer.from(obj[1],'hex')
-        parent = merkleParent(hashBin1, hashBin2)
-        parentLevel.push(parent.toString('hex'))
+        parent = merkleParent(obj[0], obj[1])
+        parentLevel.push(parent)
     })
+    
+    
+    
+    if (parentLevel.length > 2 && parentLevel.length % 2 == 1) {
+
+        parentLevel.push(parentLevel[hashList.length-1])
+    }
+
     return parentLevel;
 }
 
@@ -202,3 +236,4 @@ module.exports.merkleParent = merkleParent;
 module.exports.merkleParentLevel = merkleParentLevel;
 module.exports.merkleRoot = merkleRoot;
 module.exports.merklePath = merklePath;
+module.exports.hexToBinHashlist = hexToBinHashlist;

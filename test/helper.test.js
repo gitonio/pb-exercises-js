@@ -136,7 +136,9 @@ describe('test_merkle', function () {
             '43e7274e77fbe8e5a42a8fb58f7decdb04d521f319f332d88e6b06f8e6c09e27',
             '4f492e893bf854111c36cb5eff4dccbdd51b576e1cfdc1b84b456cd1c0403ccb',
         ]
-
+        hexHashes = hexHashes.map(obj => Buffer.from(obj,'hex'))
+        wantHexHashes = wantHexHashes.map(obj => Buffer.from(obj,'hex'))
+ 
         assert.deepEqual(helper.merkleParentLevel(hexHashes), wantHexHashes)
     })
 
@@ -164,6 +166,9 @@ describe('test_merkle', function () {
             '1796cd3ca4fef00236e07b723d3ed88e1ac433acaaa21da64c4b33c946cf3d10',
         ]
 
+        hexHashes = hexHashes.map(obj => Buffer.from(obj,'hex'))
+        wantHexHashes = wantHexHashes.map(obj => Buffer.from(obj,'hex'))
+
         assert.deepEqual(helper.merkleParentLevel(hexHashes), wantHexHashes)
     })
 
@@ -182,9 +187,11 @@ describe('test_merkle', function () {
             '2e6d722e5e4dbdf2447ddecc9f7dabb8e299bae921c99ad5b0184cd9eb8e5908',
             'b13a750047bc0bdceb2473e5fe488c2596d7a7124b4e716fdd29b046ef99bbf0',
         ]
+        hexHashes = hexHashes.map(obj => Buffer.from(obj,'hex'))
+
         wantHexHash = 'acbcab8bcc1af95d8d563b77d24c3d19b18f1486383d75a5085c4e86c86beed6'
-        wantHash = Buffer.from(wantHexHash)
-        assert.deepEqual(helper.merkleRoot(hexHashes), wantHexHash)
+        wantHash = Buffer.from(wantHexHash,'hex')
+        assert.deepEqual(helper.merkleRoot(hexHashes), wantHash)
 
         
     })

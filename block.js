@@ -6,13 +6,15 @@ var request = require('sync-request');
 var ecc = require('./ecc')
 
 class Block {
-    constructor(version, prevBlock, merkleRoot, timestamp, bits, nonce) {
+    constructor(version, prevBlock, merkleRoot, timestamp, bits, nonce, txHashes=undefined) {
         this.version = version;
         this.prevBlock = prevBlock;
         this.merkleRoot = merkleRoot;
         this.timestamp = timestamp;
         this.bits = bits;
         this.nonce = nonce;
+        this.txHashes = txHashes;
+        this.merkleTree = undefined;
     }
 
     static parse(s) {
@@ -70,6 +72,23 @@ class Block {
         const sha = helper.doubleSha256(this.serialize());
         const proof = helper.littleEndianToInt(Buffer.from(sha,'hex'))
         return proof < this.target()
+    }
+
+    validateMerkleRoot() {
+        const hashes = this.txHashes.map(obj => Array.prototype.reverse.call(Buffer.from(Array.prototype.slice.call(obj))) );
+        const root = helper.merkleRoot(hashes);
+        return Array.prototype.reverse.call(root).toString('hex') === this.merkleRoot.toString('hex');
+    }
+
+    calculateMerkleTree() {
+        this.merkleTree = [];
+
+        let currentLevel = this.txHashes.map(obj =>  Array.prototype.reverse.call(Buffer.from(Array.prototype.slice.call(obj)))  );
+        while (currentLevel.length > 1) {
+            this.merkleTree.push(currentLevel);
+            currentLevel = helper.merkleParentLevel(currentLevel);
+        }
+    
     }
 }
 

@@ -187,12 +187,12 @@ class TxIn {
 
 	serialize() {
 		const ta = Buffer.from(this.prevTx);
-		let result = Array.prototype.reverse.call(ta)
+		let result = Array.prototype.reverse.call(ta);
 		result = Buffer.concat([result , helper.intToLittleEndian(this.prevIndex, 4)]);
 		const rawScriptSig = this.scriptSig === undefined ? Buffer.from([]) : this.scriptSig.serialize();
-		result = Buffer.concat([result, helper.encodeVarint(rawScriptSig.length)])
+		result = Buffer.concat([result, helper.encodeVarint(rawScriptSig.length)]);
 		result = Buffer.concat([result, rawScriptSig]);
-		result = Buffer.concat([result, helper.intToLittleEndian(this.sequence,4)])
+		result = Buffer.concat([result, helper.intToLittleEndian(this.sequence,4)]);
 		return result;
 	}
 	
@@ -210,10 +210,8 @@ class TxIn {
 						reject(new Error('Failed to load page, status code: ' + response.statusCode));
 					}
 				
-					//return JSON.parse(body).rawtx;
 					const body = []
 					res.on('data', (chunk) => body.push(chunk));
-					// we are done, resolve promise with those joined chunks
 					res.on('end', () => {
 						let html = body.join('');
 						const raw = Buffer.from(JSON.parse(html).rawtx,'hex');
