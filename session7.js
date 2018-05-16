@@ -6,8 +6,10 @@ var merkleParent = require('./helper.js').merkleParent;
 var merkleRoot = require('./helper.js').merkleRoot;
 var intToLittleEndian = require('./helper.js').intToLittleEndian;
 var merkleParentLevel = require('./helper.js').merkleParentLevel;
-var block = require('./block.js').Block;
-var proof = require('./block.js').Proof;
+const block = require('./block.js').Block;
+const proof = require('./block.js').Proof;
+//const { block, proof } = require('./block.js');
+//import { block, proof } from './block.js';
 var network = require('./network.js')
 
 var Readable = require('stream').Readable
