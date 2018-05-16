@@ -6,7 +6,11 @@ var merkleParent = require('./helper.js').merkleParent;
 var merkleRoot = require('./helper.js').merkleRoot;
 var intToLittleEndian = require('./helper.js').intToLittleEndian;
 var merkleParentLevel = require('./helper.js').merkleParentLevel;
-var block = require('./block.js').Block
+var block = require('./block.js').Block;
+var proof = require('./block.js').Proof;
+var network = require('./network.js')
+
+var Readable = require('stream').Readable
 
 txHash0 = Buffer.from('c117ea8ec828342f4dfb0ad6bd140e03a50720ece40169ee38bdc15d9eb64cf5','hex')
 txHash1 = Buffer.from('c131474164b412e3406696da1ee20ab0fc9bf41c8f05fa8ceea7a08d672d7cc5','hex')
@@ -278,7 +282,6 @@ function findBuffer(element) {
 index = b.txHashes.findIndex(tx => tx.toString('hex') == txHash.toString('hex'))
 proofHashes = []
 currentIndex = index
-console.log(b.merkleTree)
 b.merkleTree.map(obj => {
     if (currentIndex % 2 == 1) {
         partner = currentIndex - 1
@@ -288,3 +291,102 @@ b.merkleTree.map(obj => {
     proofHashes.push(obj[partner])
     currentIndex = Math.floor(currentIndex/2)
 })
+
+p = new proof(b.merkleRoot, txHash, index, proofHashes)
+console.log(p.toString())
+
+
+
+txHexHashes = [
+    '42f6f52f17620653dcc909e58bb352e0bd4bd1381e2955d19c00959a22122b2e',
+    '94c3af34b9667bf787e1c6a0a009201589755d01d02fe2877cc69b929d2418d4',
+    '959428d7c48113cb9149d0566bde3d46e98cf028053c522b8fa8f735241aa953',
+    'a9f27b99d5d108dede755710d4a1ffa2c74af70b4ca71726fa57d68454e609a2',
+    '62af110031e29de1efcad103b3ad4bec7bdcf6cb9c9f4afdd586981795516577',
+    '766900590ece194667e9da2984018057512887110bf54fe0aa800157aec796ba',
+    'e8270fb475763bc8d855cfe45ed98060988c1bdcad2ffc8364f783c98999a208',
+    '921b8cfd3e14bf41f028f0a3aa88c813d5039a2b1bceb12208535b0b43a5d09e',
+    '15535864799652347cec66cba473f6d8291541238e58b2e03b046bc53cfe1321',
+    '1c8af7c502971e67096456eac9cd5407aacf62190fc54188995666a30faf99f0',
+    '3311f8acc57e8a3e9b68e2945fb4f53c07b0fa4668a7e5cda6255c21558c774d',
+]
+txHexHashes = txHexHashes.map(obj => Buffer.from(obj,'hex'))
+txHash = Buffer.from('e8270fb475763bc8d855cfe45ed98060988c1bdcad2ffc8364f783c98999a208','hex')
+
+readable = new Readable()
+readable.push(Buffer.from('00000020fcb19f7895db08cadc9573e7915e3919fb76d59868a51d995201000000000000acbcab8bcc1af95d8d563b77d24c3d19b18f1486383d75a5085c4e86c86beed691cfa85916ca061a00000000','hex'))
+
+readable.push(null)
+   
+b = block.parse(readable)
+b.txHashes = txHexHashes
+
+b.calculateMerkleTree()
+
+
+function findBuffer(element) {
+    return
+}
+index = b.txHashes.findIndex(tx => tx.toString('hex') == txHash.toString('hex'))
+proofHashes = []
+currentIndex = index
+b.merkleTree.map(obj => {
+    if (currentIndex % 2 == 1) {
+        partner = currentIndex - 1
+    } else {
+        partner = currentIndex + 1
+    }
+    proofHashes.push(obj[partner])
+    currentIndex = Math.floor(currentIndex/2)
+})
+
+p = new proof(b.merkleRoot, txHash, index, proofHashes)
+console.log(p.toString())
+
+// Exercise 8.1
+txHash = Buffer.from('e8270fb475763bc8d855cfe45ed98060988c1bdcad2ffc8364f783c98999a208','hex')
+merkleRoot = Buffer.from('4297fb95a0168b959d1469410c7527da5d6243d99699e7d041b7f3916ba93301','hex')
+proofHexHashes = [
+    '9ed0a5430b5b530822b1ce1b2b9a03d513c888aaa3f028f041bf143efd8c1b92',
+    '1dc4b438b3a842bcdd46b6ea5a4aac8d66be858b0ba412578027a1f1fe838c51',
+    '156f3662b07aaa4a0d9762faaa8c18afe4c211ff92eb1eae1952aa66627bbf2e',
+    '524c93c6dd0874c5fd9e4e57cfe83176e3c2841c973afb4043d225c22cc52983',
+]
+proofHashes = proofHexHashes.map(obj => Buffer.from(obj,'hex'))
+index = 6;
+current = txHash.map(obj => Array.prototype.reverse.call(obj) )
+current = Array.prototype.reverse.call(txHash)
+currentIndex = index
+proofHashes.map ( p => {
+    if (currentIndex % 2 == 1) {
+        current = merkleParent(p, current)
+    } else {
+        current = merkleParent(current, p)
+    }
+    currentIndex = Math.floor(currentIndex / 2);
+
+
+})
+
+console.log(Array.prototype.reverse.call(current).toString('hex') ==  merkleRoot.toString('hex'))
+
+
+
+// Exercise 9.1
+
+msg = Buffer.from('f9beb4d976657261636b000000000000000000005df6e0e2','hex')
+
+magic = msg.slice(0,3)
+command = msg.slice(4,15).toString('ascii')
+payloadLength = msg.slice(16,19)
+checksum = msg.slice(20,23)
+payload = msg.slice(24, msg.length-1)
+console.log(command)
+
+// Exercise 10.1
+console.log('# Excercise 10.1')
+msg = Buffer.from('f9beb4d974780000000000000000000002010000e293cdbe01000000016dbddb085b1d8af75184f0bc01fad58d1266e9b63b50881990e4b40d6aee3629000000008b483045022100f3581e1972ae8ac7c7367a7a253bc1135223adb9a468bb3a59233f45bc578380022059af01ca17d00e41837a1d58e97aa31bae584edec28d35bd96923690913bae9a0141049c02bfc97ef236ce6d8fe5d94013c721e915982acd2b12b65d9b7d59e20a842005f8fc4e02532e873d37b96f09d6d4511ada8f14042f46614a4c70c0f14beff5ffffffff02404b4c00000000001976a9141aa0cd1cbea6e7458a7abad512a9d9ea1afb225e88ac80fae9c7000000001976a9140eab5bea436a0484cfab12485efda0b78b4ecc5288ac00000000','hex')
+readable = new Readable()
+readable.push(msg)
+readable.push(null)
+console.log(network.NetworkEnvelope.parse(readable).toString())

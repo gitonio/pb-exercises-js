@@ -5,7 +5,8 @@ var BN = require('bn.js')
 var Readable = require('stream').Readable
 var ecc = require('../ecc')
 var helper = require('../helper')
-var block = require('../block').Block
+var block = require('../block.js').Block
+var proof = require('../block.js').Proof
 
 describe('BlockTest', function() {
 
@@ -201,5 +202,58 @@ describe('BlockTest', function() {
         assert.deepEqual(b.merkleTree[3],want3.map(obj => Buffer.from(obj,'hex')))
 
      })
+
+     it('test_create_merkle_proof', function(){
+        hashesHex = [
+            'f54cb69e5dc1bd38ee6901e4ec2007a5030e14bdd60afb4d2f3428c88eea17c1',
+            'c57c2d678da0a7ee8cfa058f1cf49bfcb00ae21eda966640e312b464414731c1',
+            'b027077c94668a84a5d0e72ac0020bae3838cb7f9ee3fa4e81d1eecf6eda91f3',
+            '8131a1b8ec3a815b4800b43dff6c6963c75193c4190ec946b93245a9928a233d',
+            'ae7d63ffcb3ae2bc0681eca0df10dda3ca36dedb9dbf49e33c5fbe33262f0910',
+            '61a14b1bbdcdda8a22e61036839e8b110913832efd4b086948a6a64fd5b3377d',
+            'fc7051c8b536ac87344c5497595d5d2ffdaba471c73fae15fe9228547ea71881',
+            '77386a46e26f69b3cd435aa4faac932027f58d0b7252e62fb6c9c2489887f6df',
+            '59cbc055ccd26a2c4c4df2770382c7fea135c56d9e75d3f758ac465f74c025b8',
+            '7c2bf5687f19785a61be9f46e031ba041c7f93e2b7e9212799d84ba052395195',
+            '08598eebd94c18b0d59ac921e9ba99e2b8ab7d9fccde7d44f2bd4d5e2e726d2e',
+            'f0bb99ef46b029dd6f714e4b12a7d796258c48fee57324ebdc0bbc4700753ab1',
+        ]
+        hashes = hashesHex.map(obj => Buffer.from(obj,'hex'))
+        blockRaw = Buffer.from('00000020fcb19f7895db08cadc9573e7915e3919fb76d59868a51d995201000000000000acbcab8bcc1af95d8d563b77d24c3d19b18f1486383d75a5085c4e86c86beed691cfa85916ca061a00000000','hex')
+        readable = new Readable()
+        readable.push(blockRaw)
+        readable.push(null)
+        b = block.parse(readable)
+        b.txHashes = hashes;
+        h = hashes[7]
+        p = b.createMerkleProof(h)
+        assert.equal(p.index, 7)
+        want = [
+            '8118a77e542892fe15ae3fc771a4abfd2f5d5d5997544c3487ac36b5c85170fc',
+            'ade48f2bbb57318cc79f3a8678febaa827599c509dce5940602e54c7733332e7',
+            '26906cb2caeb03626102f7606ea332784281d5d20e2b4839fbb3dbb37262dbc1',
+            '00aa9ad6a7841ffbbf262eb775f8357674f1ea23af11c01cfb6d481fec879701',
+        ]
+        assert.deepEqual(p.proofHashes ,want.map(obj => Buffer.from(obj,'hex')))
+     })
+
+     it('test_verify_merkle_proof', function() {
+        merkleRoot = Buffer.from('d6ee6bc8864e5c08a5753d3886148fb1193d4cd2773b568d5df91acc8babbcac','hex')
+        txHash = Buffer.from('77386a46e26f69b3cd435aa4faac932027f58d0b7252e62fb6c9c2489887f6df','hex')
+        index = 7
+        proofHexHashes = [
+            '8118a77e542892fe15ae3fc771a4abfd2f5d5d5997544c3487ac36b5c85170fc',
+            'ade48f2bbb57318cc79f3a8678febaa827599c509dce5940602e54c7733332e7',
+            '26906cb2caeb03626102f7606ea332784281d5d20e2b4839fbb3dbb37262dbc1',
+            '00aa9ad6a7841ffbbf262eb775f8357674f1ea23af11c01cfb6d481fec879701',
+        ]
+        proofHashes = proofHexHashes.map(obj => Buffer.from(obj,'hex'))
+        p = new proof(merkleRoot, txHash, index, proofHashes)
+        assert.isTrue(p.verify())
+
+     })
+
+
+     
 
 })
