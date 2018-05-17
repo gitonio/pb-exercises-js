@@ -190,7 +190,6 @@ function merkleParentLevel( hashList ) {
     
     
     if (parentLevel.length > 2 && parentLevel.length % 2 == 1) {
-
         parentLevel.push(parentLevel[hashList.length-1])
     }
 

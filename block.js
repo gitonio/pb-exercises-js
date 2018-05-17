@@ -5,6 +5,42 @@ var BN = require('bn.js')
 var request = require('sync-request');
 var ecc = require('./ecc')
 
+
+class Proof {
+    constructor(merkleRoot, txHash, index, proofHashes) {
+        this.merkleRoot = merkleRoot;
+        this.txHash = txHash;
+        this.index = index;
+        this.proofHashes = proofHashes;
+    }
+
+    verify () {
+        let current = Buffer.from(Array.prototype.reverse.call(new Uint16Array(this.txHash)));
+        let currentIndex = this.index;
+        this.proofHashes.map( obj => {
+            if (currentIndex % 2 == 1) {
+                current = helper.merkleParent(obj, current);
+            } else {
+                current = helper.merkleParent(current, obj)
+            }
+            currentIndex = Math.floor(currentIndex / 2);
+        })
+        return Buffer.from(Array.prototype.reverse.call(new Uint16Array(current))).toString('hex') == this.merkleRoot.toString('hex');
+
+    }
+}
+
+Proof.prototype.toString = function(){
+    let s = ''
+
+    s = `${this.merkleRoot.toString("hex")} : ${this.txHash.toString("hex")} : ${this.index}`;
+    this.proofHashes.map( p => {
+        s = s + `\t\n${p.toString('hex')}`
+    })
+
+    return s
+}
+
 class Block {
     constructor(version, prevBlock, merkleRoot, timestamp, bits, nonce, txHashes=undefined) {
         this.version = version;
@@ -90,6 +126,30 @@ class Block {
         }
     
     }
+
+    createMerkleProof(txHash) {
+        if (this.merkleTree == undefined) {
+            this.calculateMerkleTree();
+        }
+        const index = this.txHashes.findIndex(tx => tx.toString('hex') == txHash.toString('hex'));
+        let proofHashes = [];
+        let currentIndex = index;
+        let partner = 0;
+        this.merkleTree.map(obj => {
+            if (currentIndex % 2 == 1) {
+                partner = currentIndex - 1
+            } else {
+                partner = currentIndex + 1
+            }
+            proofHashes.push(obj[partner])
+            currentIndex = Math.floor(currentIndex/2)
+        })
+        
+        return new Proof(b.merkleRoot, txHash, index, proofHashes)
+        
+
+    }
 }
 
 module.exports.Block = Block;
+module.exports.Proof = Proof;
