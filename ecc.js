@@ -13,12 +13,9 @@ class FieldElement {
 			this.num = undefined
 			this.prime = new BN(prime);
 		} else {
-			this.num = (BN.isBN(num) && num != undefined) ? num : new BN(num);
+			this.num = (num && BN.isBN(num) ) ? num : new BN(num);
 			this.prime = new BN(prime);
 		}
-		// this.num = num==undefined? undefined: 0;
-		// this.num = (BN.isBN(num) && num!= undefined ? num : new BN(num));
-		//this.prime = BN.isBN(prime)  && num!= undefined ? prime : new BN(prime);
 		if (this.num && this.num.isNeg()) {
 			throw new Error(`Num ${this.num} not in field range 0 to ${this.prime - 1}`);
 		}
@@ -48,12 +45,10 @@ class FieldElement {
 		if (!this.prime.eq(fe.prime)) {
 			throw new Error('Primes must be the same');
 		}
-		//		const num = (this.num * fe.num) % this.prime;
 		const num = this.num.mul(fe.num).mod(this.prime);
 		return new FieldElement(num, fe.prime);
 	}
 	rmul(f) {
-		//const num = (this.num * f) % this.prime;
 		const num = this.num.mul(new BN(f)).mod(this.prime);
 		return new FieldElement(num, this.prime);
 	}
@@ -64,13 +59,7 @@ class FieldElement {
 		} else if (BN.isBN(f)) {
 			let red = BN.red(this.prime)
 			let numred = this.num.toRed(red)
-			//let fred = f.toRed(red)
-			//let one = new BN(1)
-			//let fone = one.toRed(red)
-			//numred = numred.redPow(fred.redSub(fone))
 			let x = numred.redPow(f.mod(this.prime.subn(1)))
-			//const pf = f.mod(this.prime.sub(new BN(1)))
-			//numred = numred.redPow(pf).mod(this.prime);
 			num = x.fromRed();
 		} else {
 			num = Math.pow(this.num, f % (this.prime - 1)) % this.prime;
@@ -87,13 +76,16 @@ class FieldElement {
 		}
 		let red = BN.red(this.prime);
 		let fer = fe.num.toRed(red)
-		//const inv =  fe.num.pow( this.prime.sub(new BN(2)) ).mod(this.prime);
 		const inv = fer.redPow(this.prime.sub(new BN(2))).mod(this.prime)
 		const num = (new BN(this.num).mul(inv)).mod(new BN(this.prime));
 		return new FieldElement(num, this.prime);
 
 	}
 };
+
+FieldElement.prototype.toString = function(){
+	return `FieldElement_${this.prime}(${this.num})`
+}
 
 class Point {
 	constructor(x, y, a, b) {
@@ -198,6 +190,16 @@ class Point {
 	}
 }
 
+Point.prototype.toString = function(){
+	if (this.x == undefined) {
+		return 'Point(infinity)'
+	} else {
+		return `Point (${this.x.toString()}, ${this.y.toString()})`
+	}
+}
+
+
+
 //let prime = new BN('fffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f ',16);
 //let prime = new BN(223);
 
@@ -223,6 +225,14 @@ class S256Field extends FieldElement {
 	}
 
 }
+S256Field.prototype.toString = function(){
+	if (this.num == undefined) {
+		this.num
+	} else {
+		return this.num.toString(16)
+	}
+}
+
 
 class S256Point extends Point {
 	constructor(x, y) {
@@ -352,6 +362,13 @@ class S256Point extends Point {
 		} else {
 			return new S256Point(x, oddBeta)
 		}
+	}
+}
+S256Point.prototype.toString = function(){
+	if (this.x == undefined) {
+		return 'Point(infinity)'
+	} else {
+		return `Point (${this.x.toString()}, ${this.y.toString()})`
 	}
 }
 

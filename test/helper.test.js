@@ -52,13 +52,13 @@ describe('little endian to int', function () {
 		
 		let want = 10011545
 		it('le1', function() {
-			assert.equal(bytes.readInt32LE(), want)			
+			assert.equal(helper.littleEndianToInt(bytes), want)			
 		})
 		
 		bytes = helper.strToBytes('a135ef0100000000', 'hex')
 		want = 32454049
 		it('le2', function() {
-			assert.equal(bytes.readInt32LE(), want)			
+			assert.equal(helper.littleEndianToInt(bytes), want)			
 		})
 })
 

@@ -1,4 +1,5 @@
 BN = require('bn.js')
+
 //Exercise 1.1
 console.log('Exercise 1.1')
 prime = 31
