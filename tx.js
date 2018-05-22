@@ -163,7 +163,20 @@ class Tx {
 	}
 
 }
- 
+
+Tx.prototype.toString = function(){
+	inputs = ''
+	this.inputs.map(obj => {
+		inputs = inputs + obj.toString() + '\n';
+	})
+	outputs = ''
+	this.outputs.map(obj => {
+		outputs = outputs + obj.toString() + '\n';
+	})
+	return `version: ${this.version}\nInputs:\n ${inputs}\nOutputs:\n ${outputs}\nLocktime:${this.locktime}`
+}
+
+
 class TxIn {
 
 	constructor (prevTx, prevIndex, scriptSig, sequence, cache){
@@ -284,6 +297,11 @@ class TxIn {
 	}
 }
 
+TxIn.prototype.toString = function(){
+	return`${this.prevTx.toString()}:${this.prevIndex}`
+}
+
+
 class TxOut {
 	constructor(amount, scriptPubkey) {
 		this.amount = amount;
@@ -305,7 +323,11 @@ class TxOut {
 		return result;
 	}
 }
-	
+
+TxOut.prototype.toString = function(){
+	return `${this.amount} : ${this.scriptPubkey.toString()}`
+}
+
 module.exports.Tx = Tx;
 module.exports.TxIn = TxIn;
 module.exports.TxOut = TxOut;

@@ -8,6 +8,7 @@ var Readable = require('stream').Readable
 
 // Exercise 1.1
 //Step 1
+console.log('\nExercise 1.1')
 txIns = []
 prevTx = Buffer.from('0025bc3c0fa8b7eb55b9437fdbd016870d18e0df0ace7bc9864efc38414147c8','hex')
 txIns.push(new tx.TxIn(prevTx, 0, Buffer.from([]),0xffffffff))
@@ -38,6 +39,7 @@ console.log(txObj.serialize().toString('hex'))
 
 
 // Exercise 3.1
+console.log('\nExercise 3.1')
 //Step 1
 prevTx = Buffer.from('0025bc3c0fa8b7eb55b9437fdbd016870d18e0df0ace7bc9864efc38414147c8','hex')
 prevIndex = 0
@@ -85,27 +87,33 @@ if (txIns[0].scriptPubkey(true).elements[2].toString('hex').toString('hex') !== 
 console.log(txObj.serialize().toString('hex'))
 
 //Exercise 4.1
+console.log('\nExercise 4.1')
 hexRedeemScript = '5221022626e955ea6ea6d98850c994f9107b036b1334f18ca8830bfff1295d21cfdb702103b287eaf122eea69030a0e9feed096bed8045c8b98bec453e1ffac7fbdbd4bb7152ae'
 redeemScript = Buffer.from(hexRedeemScript,'hex')
 h160 = helper.hash160(redeemScript)
 console.log(h160)
 
+
 // P2SH address construction example
+console.log('\nP2SH address construction example')
 Buffer.concat([Buffer.from([0x05]), Buffer.from('74d691da1574e6b3c192ecfb52cc8984ee7b6c56','hex')])
 console.log(helper.encodeBase58Checksum(Buffer.concat([Buffer.from([0x05]), Buffer.from('74d691da1574e6b3c192ecfb52cc8984ee7b6c56','hex')])))
 
 // z for p2sh example
+console.log('\nzfor p2sh example')
 sha = helper.doubleSha256(Buffer.from('0100000001868278ed6ddfb6c1ed3ad5f8181eb0c7a385aa0836f01d5e4789e6bd304d87221a000000475221022626e955ea6ea6d98850c994f9107b036b1334f18ca8830bfff1295d21cfdb702103b287eaf122eea69030a0e9feed096bed8045c8b98bec453e1ffac7fbdbd4bb7152aeffffffff04d3b11400000000001976a914904a49878c0adfc3aa05de7afad2cc15f483a56a88ac7f400900000000001976a914418327e3f3dda4cf5b9089325a4b95abdfa0334088ac722c0c00000000001976a914ba35042cfe9fc66fd35ac2224eebdafd1028ad2788acdc4ace020000000017a91474d691da1574e6b3c192ecfb52cc8984ee7b6c56870000000001000000','hex'))
 
 console.log(sha)
 
 //p2sh verification example
+console.log('\np2sh verification example')
 z = new BN(sha,'hex')
 point = ecc.S256Point.parse(Buffer.from('022626e955ea6ea6d98850c994f9107b036b1334f18ca8830bfff1295d21cfdb70','hex'))
 sig = ecc.Signature.parse(Buffer.from('3045022100dc92655fe37036f47756db8102e0d7d5e28b3beb83a8fef4f5dc0559bddfb94e02205a36d4e4e6c7fcd16658c50783e00c341609977aed3ad00937bf4ee942a89937','hex'))
 console.log(point.verify(z, sig))
 
 // Exercise 6.1
+console.log('\nExercise 6.1')
 hexSec = '03b287eaf122eea69030a0e9feed096bed8045c8b98bec453e1ffac7fbdbd4bb71'
 hexDer = '3045022100da6bee3c93766232079a01639d07fa869598749729ae323eab8eef53577d611b02207bef15429dcadce2121ea07f233115c6f09034c0be68db99980b9a6c5e754022'
 hexRedeemScript = '5221022626e955ea6ea6d98850c994f9107b036b1334f18ca8830bfff1295d21cfdb702103b287eaf122eea69030a0e9feed096bed8045c8b98bec453e1ffac7fbdbd4bb7152ae'
@@ -125,7 +133,6 @@ t.inputs[0].scriptSig = script.Script.parse(redeemScript)
 ser = t.serialize()
 ser = Buffer.concat([ser, helper.intToLittleEndian(1,4)])
 toSign = helper.doubleSha256(ser)
-console.log(toSign)
 z = new BN(toSign,'hex')
 console.log(point.verify(z , sig))
 

@@ -14,17 +14,21 @@ var network = require('./network.js')
 
 var Readable = require('stream').Readable
 
+
+console.log('Merkle Parent Example')
 txHash0 = Buffer.from('c117ea8ec828342f4dfb0ad6bd140e03a50720ece40169ee38bdc15d9eb64cf5','hex')
 txHash1 = Buffer.from('c131474164b412e3406696da1ee20ab0fc9bf41c8f05fa8ceea7a08d672d7cc5','hex')
 mp = doubleSha256(Buffer.concat([txHash0, txHash1]))
 console.log(mp.toString('hex'))
 
 // Exercise 1.1
+console.log('\nExercise 1.1')
 txHash0 = Buffer.from('f391da6ecfeed1814efae39e7fcb3838ae0b02c02ae7d0a5848a66947c0727b0','hex')
 txHash1 = Buffer.from('3d238a92a94532b946c90e19c49351c763696cff3db400485b813aecb8a13181','hex')
 mp = doubleSha256(Buffer.concat([txHash0, txHash1]))
 console.log(mp.toString('hex'))
 
+console.log('\nMerkle Parent Level Example')
 hexHashes = [
     'c117ea8ec828342f4dfb0ad6bd140e03a50720ece40169ee38bdc15d9eb64cf5',
     'c131474164b412e3406696da1ee20ab0fc9bf41c8f05fa8ceea7a08d672d7cc5',
@@ -49,6 +53,7 @@ hexHashes.map(obj => {
 
 
 // Exercise 2.1
+console.log('\nExercise 2.1')
 hexHashes = [
     '8b30c5ba100f6f2e5ad1e2a742e5020491240f8eb514fe97c713c31718ad7ecd',
     '7f4e6f9e224e20fda0ae4c44114237f97cd35aca38d83081c9bfd41feb907800',
@@ -74,7 +79,7 @@ hexHashes.map(obj => {
 
 // Exercise 2.2
 // Odd Merkle Parent Level Example
-
+console.log('\nOdd Merkle Parent Level Example')
 hexHashes = [
     'c117ea8ec828342f4dfb0ad6bd140e03a50720ece40169ee38bdc15d9eb64cf5',
     'c131474164b412e3406696da1ee20ab0fc9bf41c8f05fa8ceea7a08d672d7cc5',
@@ -100,6 +105,7 @@ hexHashes.map(obj => {
 
 
 // Exercise 3.1
+console.log('\nExercise 3.1')
 hexHashes = [
     '8b30c5ba100f6f2e5ad1e2a742e5020491240f8eb514fe97c713c31718ad7ecd',
     '7f4e6f9e224e20fda0ae4c44114237f97cd35aca38d83081c9bfd41feb907800',
@@ -124,6 +130,7 @@ hexHashes.map(obj => {
 })
 
 //Exercise 3.2
+console.log('\nMerkle root Example')
 hexHashes = [
     'c117ea8ec828342f4dfb0ad6bd140e03a50720ece40169ee38bdc15d9eb64cf5',
     'c131474164b412e3406696da1ee20ab0fc9bf41c8f05fa8ceea7a08d672d7cc5',
@@ -145,9 +152,10 @@ currentLevel = hexHashes
 while (currentLevel.length > 1) {
     currentLevel = merkleParentLevel(currentLevel);
 }
-console.log('3.1', currentLevel[0]);
+console.log('3.1', currentLevel[0].toString('hex'));
 
 // Exercise 4.1
+console.log('\nExercise 4.1')
 hexHashes = [
     '42f6f52f17620653dcc909e58bb352e0bd4bd1381e2955d19c00959a22122b2e',
     '94c3af34b9667bf787e1c6a0a009201589755d01d02fe2877cc69b929d2418d4',
@@ -168,31 +176,13 @@ currentLevel = hexHashes
 while (currentLevel.length > 1) {
     currentLevel = merkleParentLevel(currentLevel);
 }
-console.log('4.1', currentLevel[0]);
+console.log(currentLevel[0].toString('hex'));
 
 // Exercise 4.2
-hexHashes = [
-    '42f6f52f17620653dcc909e58bb352e0bd4bd1381e2955d19c00959a22122b2e',
-    '94c3af34b9667bf787e1c6a0a009201589755d01d02fe2877cc69b929d2418d4',
-    '959428d7c48113cb9149d0566bde3d46e98cf028053c522b8fa8f735241aa953',
-    'a9f27b99d5d108dede755710d4a1ffa2c74af70b4ca71726fa57d68454e609a2',
-    '62af110031e29de1efcad103b3ad4bec7bdcf6cb9c9f4afdd586981795516577',
-    '766900590ece194667e9da2984018057512887110bf54fe0aa800157aec796ba',
-    'e8270fb475763bc8d855cfe45ed98060988c1bdcad2ffc8364f783c98999a208',
-]
-hexHashes = hexHashes.map(obj => Buffer.from(obj,'hex'))
-
-console.log(merkleRoot(hexHashes))
-currentLevel = hexHashes
-
-while (currentLevel.length > 1) {
-    currentLevel = merkleParentLevel(currentLevel);
-}
-console.log('4.2', currentLevel[0]);
+console.log('\nBlock Merkle Root Example')
 
 
 //Buffer.from(Array.prototype.reverse.call(new Uint16Array(s.read(32))));
-
 txHexHashes = [
     '42f6f52f17620653dcc909e58bb352e0bd4bd1381e2955d19c00959a22122b2e',
     '94c3af34b9667bf787e1c6a0a009201589755d01d02fe2877cc69b929d2418d4',
@@ -207,6 +197,8 @@ merkleRoot(txHexHashes)
 console.log(Array.prototype.reverse.call(Buffer.from(merkleRoot(txHexHashes),'hex')).toString('hex'));
 
 // Exercise 5.1
+console.log('\nExercise 5.1')
+
 txHexHashes = [
     '42f6f52f17620653dcc909e58bb352e0bd4bd1381e2955d19c00959a22122b2e',
     '94c3af34b9667bf787e1c6a0a009201589755d01d02fe2877cc69b929d2418d4',
@@ -225,7 +217,7 @@ merkleRoot(txHexHashes)
 console.log(Array.prototype.reverse.call(Buffer.from(merkleRoot(txHexHashes),'hex')).toString('hex'));
 
 // Merkle Path Example
-
+console.log('\nMerkle Path Example')
 merklePath = [];
  totalLevels = Math.ceil(Math.log2(16))
 index = 10
@@ -235,6 +227,7 @@ for (let i = 0; i < totalLevels; i++) {
 }
 console.log(merklePath);
 
+console.log('\nExercise 6.1')
 merklePath = [];
  totalLevels = Math.ceil(Math.log2(27))
 index = 13
@@ -246,6 +239,7 @@ console.log(merklePath);
 
 
 // Merkle Proof Example
+console.log('\nMerkle Proof Example')
 txHexHashes = [
     "9745f7173ef14ee4155722d1cbf13304339fd00d900b759c6f9d58579b5765fb",
     "5573c8ede34936c29cdfdfe743f7f5fdfbd4f54ba0705259e62f39917065cb9b",
@@ -298,7 +292,7 @@ p = new proof(b.merkleRoot, txHash, index, proofHashes)
 console.log(p.toString())
 
 
-
+console.log('\nExercise 7.1')
 txHexHashes = [
     '42f6f52f17620653dcc909e58bb352e0bd4bd1381e2955d19c00959a22122b2e',
     '94c3af34b9667bf787e1c6a0a009201589755d01d02fe2877cc69b929d2418d4',
@@ -346,6 +340,7 @@ p = new proof(b.merkleRoot, txHash, index, proofHashes)
 console.log(p.toString())
 
 // Exercise 8.1
+console.log('\nExercise 8.1')
 txHash = Buffer.from('e8270fb475763bc8d855cfe45ed98060988c1bdcad2ffc8364f783c98999a208','hex')
 merkleRoot = Buffer.from('4297fb95a0168b959d1469410c7527da5d6243d99699e7d041b7f3916ba93301','hex')
 proofHexHashes = [
@@ -375,7 +370,7 @@ console.log(Array.prototype.reverse.call(current).toString('hex') ==  merkleRoot
 
 
 // Exercise 9.1
-
+console.log('\nExercise 9.1')
 msg = Buffer.from('f9beb4d976657261636b000000000000000000005df6e0e2','hex')
 
 magic = msg.slice(0,3)
@@ -386,7 +381,7 @@ payload = msg.slice(24, msg.length-1)
 console.log(command)
 
 // Exercise 10.1
-console.log('# Excercise 10.1')
+console.log('\n# Excercise 10.1')
 msg = Buffer.from('f9beb4d974780000000000000000000002010000e293cdbe01000000016dbddb085b1d8af75184f0bc01fad58d1266e9b63b50881990e4b40d6aee3629000000008b483045022100f3581e1972ae8ac7c7367a7a253bc1135223adb9a468bb3a59233f45bc578380022059af01ca17d00e41837a1d58e97aa31bae584edec28d35bd96923690913bae9a0141049c02bfc97ef236ce6d8fe5d94013c721e915982acd2b12b65d9b7d59e20a842005f8fc4e02532e873d37b96f09d6d4511ada8f14042f46614a4c70c0f14beff5ffffffff02404b4c00000000001976a9141aa0cd1cbea6e7458a7abad512a9d9ea1afb225e88ac80fae9c7000000001976a9140eab5bea436a0484cfab12485efda0b78b4ecc5288ac00000000','hex')
 readable = new Readable()
 readable.push(msg)
