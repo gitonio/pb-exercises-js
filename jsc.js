@@ -1,11 +1,10 @@
 rp = Array.from({length: prime}, (x,i) => i)
-rp = Array.from({length: 10},    (x,i) => { {amount :i}}   )
+rp = Array.from({length: 10},    (x,i) => i   )
 
 x = rp.map(obj => ( {"date": obj, "amount": Math.random()}) )
 
-target = 3
 
-function batch(target) {
+function batch(x, target) {
     optimum = {"start":0, "end":0, "rem":target}
     for (let index = 0; index < x.length; index++) {
     sum = x[index].amount
@@ -25,4 +24,4 @@ function batch(target) {
     return optimum
 }
 
-res = batch(3)
+res = batch(x,3)
