@@ -210,7 +210,7 @@ class TxIn {
 	}
 	
 	getUrl(testnet = false) {
-		return (testnet ?  'https://testnet.blockexplorer.com/api' :  'https://btc-bitcore3.trezor.io/api');
+		return (testnet ?  'https://testnet.blockexplorer.com/api' :  'https://blockexplorer.com/api');
 	}
 	
 	fetchTxAsync(testnet=false) {

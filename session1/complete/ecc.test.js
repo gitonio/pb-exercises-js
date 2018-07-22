@@ -1,10 +1,11 @@
 
 var { assert, expect} = require('chai');
-var ecc = require('../ecc');
+var ecc = require('./ecc');
 var BN = require('bn.js')
 
 
  describe('FieldElement', function() {
+	
 	var newNum = new ecc.FieldElement(2,3);
 	it('constructor with valid args', function() {
 		assert.equal(newNum.num, 2);
@@ -19,7 +20,7 @@ var BN = require('bn.js')
 		).to.throw(`Num ${x} not in field range 0 to ${y-1}`); 
 	})
 	
-	it('add', function() {
+	it('test_add', function() {
 		a = new ecc.FieldElement(2, 31);
 		b = new ecc.FieldElement(15,31);
 		assert.deepEqual(a.add(b), new ecc.FieldElement(17,31));
@@ -28,7 +29,7 @@ var BN = require('bn.js')
 		assert.deepEqual(a.add(b), new ecc.FieldElement(7,31));
 	})
 	
-	it('sub', function() {
+	it('test_sub', function() {
 		a = new ecc.FieldElement(29, 31);
 		b = new ecc.FieldElement(4,31);
 		assert.deepEqual(a.sub(b), new ecc.FieldElement(25,31));
@@ -37,7 +38,7 @@ var BN = require('bn.js')
 		assert.deepEqual(a.sub(b), new ecc.FieldElement(16,31));	
 	})
 
-	it('mul', function() {
+	it('test_mul', function() {
 		a = new ecc.FieldElement(24, 31);
 		b = new ecc.FieldElement(19, 31);
 		assert.deepEqual(a.mul(b), new ecc.FieldElement(22,31));
@@ -49,7 +50,7 @@ var BN = require('bn.js')
 		assert.deepEqual(a.rmul(b), a.add(a));
 	})
 	
-	it('pow', function() {
+	it('test_pow', function() {
 		a = new ecc.FieldElement(17, 31);
 		b = 3;
 		assert.deepEqual(a.pow(b), new ecc.FieldElement(15,31));
@@ -58,7 +59,7 @@ var BN = require('bn.js')
 		assert.deepEqual(a.pow(5).mul(b), new ecc.FieldElement(16,31));	
 	})
 	
-	it('div', function() {
+	it('test_div', function() {
 		a = new ecc.FieldElement(3, 31);
 		b = new ecc.FieldElement(24, 31);
 		assert.deepEqual(a.div(b), new ecc.FieldElement(4,31));
@@ -74,7 +75,6 @@ var BN = require('bn.js')
 
 
 describe('Point', function() {
-	
 	x = -2;
 	y =  4;
 	it('should validate curve', function () {
@@ -89,7 +89,7 @@ describe('Point', function() {
 		).to.not.throw(); 
 		
 	})
-	it('should add0', function () {
+	it('test_add0', function () {
 		a = new ecc.Point(undefined, undefined, 5, 7);
 		b = new ecc.Point(2, 5, 5, 7);
 		c = new ecc.Point(2, -5, 5, 7);
@@ -97,13 +97,13 @@ describe('Point', function() {
 		assert.deepEqual(b.add(a), b);
 		assert.deepEqual(b.add(c), a);
 	})
-	it('should add1', function () {
+	it('test_add1', function () {
 		a = new ecc.Point(3, 7, 5, 7);
 		b = new ecc.Point(-1, -1, 5, 7);
 		c = new ecc.Point(2, -5, 5, 7);
 		assert.deepEqual(a.add(b),c);
 	})
-	it('should add2', function() {
+	it('test_add2', function() {
 		a = new ecc.Point(-1, 1, 5, 7);
 		b = new ecc.Point(18, -77, 5, 7);
 		assert.deepEqual(a.add(a), b); 
@@ -112,7 +112,7 @@ describe('Point', function() {
 
 
 describe('ECC', function() {
-	/*
+	
 	it('test_on_curve', function () {
 		prime = 223;
 		a = new ecc.FieldElement(0, prime);
@@ -130,7 +130,6 @@ describe('ECC', function() {
 			expect( function() {p = new ecc.Point(x, y, a, b); }).to.throw(`(${x.num}, ${y.num}) is not on the curve`)
 		})		
 	})
-	
 	it('test_add0', function() {
 		prime = 223;
 		a1 = new ecc.FieldElement(0, prime);
@@ -146,23 +145,6 @@ describe('ECC', function() {
 		p1.add(p2);
 		p1.add(p1);
 	})
-	*/
-	it('test_add01', function() {
-		prime = 223;
-		a1 = new ecc.FieldElement(0, prime);
-		b1 = new ecc.FieldElement(7, prime);
-		x1 = new ecc.FieldElement(139, prime);
-		y1 = new ecc.FieldElement(86, prime);
-		p1 = new ecc.Point(x1, y1, a1, b1);
-		a2 = new ecc.FieldElement(0, prime);
-		b2 = new ecc.FieldElement(7, prime);
-		x2 = new ecc.FieldElement(15, prime);
-		y2 = new ecc.FieldElement(86, prime);
-		p2 = new ecc.Point(x2, y2, a2, b2);
-		p1.add(p2);
-		//p1.add(p1);
-	})
-	/*
 	it('test_add1', function() {
 		prime = 223;
 		a = new ecc.FieldElement(0, prime);
@@ -209,7 +191,6 @@ describe('ECC', function() {
 			assert.deepEqual(p1.rmul(s), p2);
 		})
 	})
-	*/
 })
 
 

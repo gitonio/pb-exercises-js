@@ -25,7 +25,9 @@ console.log(Math.pow(5,5)*18 % prime)
 //Exercise 2.2
 console.log('Exercise 2.2')
 rp = Array.from({length: prime}, (x,i) => i)
+console.log(rp)
 k = Math.floor(Math.random()*prime+1)
+console.log(k)
 rp = rp.map((x,i) => (i*k%prime)).sort(function(a,b) {return a - b;})
 console.log(rp)
 
@@ -57,12 +59,13 @@ console.log('Exercise 4.2')
 points = [{x:-2,y:4},{x:3,y:7},{x:18,y:77}]
 pointstf = points.map(o => {
 	if(Math.pow(o.y,2) == Math.pow(o.x, 3) + o.x * 5 + 7) {
-		console.log(o, ' is on the curve.')
+		console.log( `(${o.x},${o.y}) is on the curve.`)
 	} else {
-		console.log(o, ' is not on the curve.')
+		console.log( `(${o.x},${o.y}) is not on the curve.`)
 	}
 
 })
+
 
 //Exercise 6.1
 console.log('Exercise 6.1')

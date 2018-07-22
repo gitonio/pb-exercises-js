@@ -247,6 +247,7 @@ function merklePath(index, total) {
 }
 
 module.exports.mod = mod;
+module.exports.runTest = runTest;
 module.exports.SIGHASH_ALL = SIGHASH_ALL;
 
 module.exports.hash160 = hash160;

@@ -22,7 +22,7 @@ class FieldElement {
 	}
 
 	equals(fe) {
-		if (fe.num === undefined) return false
+		if (fe.num === undefined) return true
 		return (this.num.eq(fe.num) && this.prime.eq(fe.prime))
 	}
 
@@ -63,14 +63,11 @@ class FieldElement {
 		let numred = this.num.toRed(red)
 		let exponent  = helper.mod(f, this.prime.subn(1) )
 		let x = numred.redPow(exponent).mod(this.prime)
-		//console.log('x',x, this.prime,f,exponent,red,this.num,numred)
 		try {
 			num = x.fromRed();
 		} catch (error) {
 			num = x
 		}
-		
-		//num = x
 		return new FieldElement(num, this.prime);
 	}
 
@@ -505,3 +502,4 @@ module.exports.S256Point = S256Point;
 module.exports.parseHexString = parseHexString;
 module.exports.Signature = Signature;
 module.exports.PrivateKey = PrivateKey;
+module.exports.G = G;

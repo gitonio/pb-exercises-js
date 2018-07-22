@@ -64,6 +64,24 @@ multiplications.map(obj =>{
 	console.log( p1.rmul(s).toString());
 })
 
+// Group Example
+console.log('\nGroup Example')
+x = new ecc.FieldElement(47, prime)
+y = new ecc.FieldElement(71, prime)
+
+G = new ecc.Point(x, y, a, b)
+inf = new ecc.Point(new ecc.FieldElement(undefined), new ecc.FieldElement(undefined), a, b)
+total = G
+count = 1
+console.log(G, inf,total.eq(inf))
+while (total.x.num != undefined) {
+	console.log(`In loop:${count}:${total},${G}`)
+	total = total.add(G)
+	count++
+}
+console.log(`${count}:${total}`)
+
+
 //Exercise 4.1
 console.log('\nExercise 4.1')
 x = new ecc.FieldElement(15, prime)
@@ -72,8 +90,10 @@ y = new ecc.FieldElement(86, prime)
 p = new ecc.Point(x, y, a, b)
 inf = new ecc.Point(new ecc.FieldElement(undefined), new ecc.FieldElement(undefined), a, b)
 product = p
+console.log(p,product)
 counter = 1
-while (!product.eq(inf)) {
+while (product.x.num != undefined) {
+	console.log(`In loop:${counter}:${product}:${p}`)
 	product = product.add(p)
 	counter++
 }

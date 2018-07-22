@@ -1,6 +1,6 @@
 
 var { assert, expect} = require('chai');
-var ecc = require('../ecc');
+var ecc = require('./ecc');
 var BN = require('bn.js')
 
 
@@ -112,7 +112,7 @@ describe('Point', function() {
 
 
 describe('ECC', function() {
-	/*
+	
 	it('test_on_curve', function () {
 		prime = 223;
 		a = new ecc.FieldElement(0, prime);
@@ -130,7 +130,6 @@ describe('ECC', function() {
 			expect( function() {p = new ecc.Point(x, y, a, b); }).to.throw(`(${x.num}, ${y.num}) is not on the curve`)
 		})		
 	})
-	
 	it('test_add0', function() {
 		prime = 223;
 		a1 = new ecc.FieldElement(0, prime);
@@ -146,23 +145,6 @@ describe('ECC', function() {
 		p1.add(p2);
 		p1.add(p1);
 	})
-	*/
-	it('test_add01', function() {
-		prime = 223;
-		a1 = new ecc.FieldElement(0, prime);
-		b1 = new ecc.FieldElement(7, prime);
-		x1 = new ecc.FieldElement(139, prime);
-		y1 = new ecc.FieldElement(86, prime);
-		p1 = new ecc.Point(x1, y1, a1, b1);
-		a2 = new ecc.FieldElement(0, prime);
-		b2 = new ecc.FieldElement(7, prime);
-		x2 = new ecc.FieldElement(15, prime);
-		y2 = new ecc.FieldElement(86, prime);
-		p2 = new ecc.Point(x2, y2, a2, b2);
-		p1.add(p2);
-		//p1.add(p1);
-	})
-	/*
 	it('test_add1', function() {
 		prime = 223;
 		a = new ecc.FieldElement(0, prime);
@@ -209,7 +191,6 @@ describe('ECC', function() {
 			assert.deepEqual(p1.rmul(s), p2);
 		})
 	})
-	*/
 })
 
 

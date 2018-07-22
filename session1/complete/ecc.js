@@ -9,21 +9,20 @@ var Readable = require('stream').Readable
 
 class FieldElement {
 	constructor(num, prime) {
-		if (num === undefined) {
+		if (num == undefined) {
 			this.num = undefined
 			this.prime = new BN(prime);
 		} else {
 			this.num = (num && BN.isBN(num) ) ? num : new BN(num);
 			this.prime = new BN(prime);
 		}
-		if (this.num && (this.num.isNeg() || this.num.gte(this.prime))) {
+		if (this.num && this.num.isNeg()) {
 			throw new Error(`Num ${this.num} not in field range 0 to ${this.prime - 1}`);
 		}
 	}
 
 	equals(fe) {
-		if (fe.num === undefined) return false
-		return (this.num.eq(fe.num) && this.prime.eq(fe.prime))
+		if (this.num == fe.num) return 'true'
 	}
 
 	add(fe) {
@@ -38,11 +37,10 @@ class FieldElement {
 			throw new Error('Primes must be the same');
 		}
 		//https://dev.to/maurobringolf/a-neat-trick-to-compute-modulo-of-negative-numbers-111e
-		//const num = this.num.sub(fe.num).mod(this.prime).add(this.prime).mod(this.prime);
-		const num = helper.mod(this.num.sub(fe.num), this.prime)
+		//const num = (((this.num - fe.num) % this.prime) + this.prime) % this.prime;
+		const num = this.num.sub(fe.num).mod(this.prime).add(this.prime).mod(this.prime);
 		return new FieldElement(num, fe.prime);
 	}
-
 	mul(fe) {
 		if (!this.prime.eq(fe.prime)) {
 			throw new Error('Primes must be the same');
@@ -50,46 +48,36 @@ class FieldElement {
 		const num = this.num.mul(fe.num).mod(this.prime);
 		return new FieldElement(num, fe.prime);
 	}
-
 	rmul(f) {
 		const num = this.num.mul(new BN(f)).mod(this.prime);
 		return new FieldElement(num, this.prime);
 	}
-
 	pow(f) {
 		let num;
-		f = new BN(f)
-		let red = BN.red(this.prime)
-		let numred = this.num.toRed(red)
-		let exponent  = helper.mod(f, this.prime.subn(1) )
-		let x = numred.redPow(exponent).mod(this.prime)
-		//console.log('x',x, this.prime,f,exponent,red,this.num,numred)
-		try {
+		if (f < 0) {
+			num = new BN(Math.pow(this.num, -f)).pow(new BN(this.prime - 2)).mod(new BN(this.prime)).toNumber();
+		} else if (BN.isBN(f)) {
+			let red = BN.red(this.prime)
+			let numred = this.num.toRed(red)
+			let x = numred.redPow(f.mod(this.prime.subn(1)))
 			num = x.fromRed();
-		} catch (error) {
-			num = x
+		} else {
+			num = Math.pow(this.num, f % (this.prime - 1)) % this.prime;
+			const pf = new BN(f).mod(this.prime.sub(new BN(1)))
+
+			num = this.num.pow(pf).mod(this.prime);
+
 		}
-		
-		//num = x
 		return new FieldElement(num, this.prime);
 	}
-
 	div(fe) {
 		if (!this.prime.eq(fe.prime)) {
 			throw new Error('Primes must be the same');
 		}
-
-		/*
-		// Using fermats little theorm
 		let red = BN.red(this.prime);
 		let fer = fe.num.toRed(red)
-		const invRed = fer.redPow(this.prime.sub(new BN(2))).mod(this.prime)
-		const inv = invRed.fromRed()
-		*/
-
-		// Using BN builtin invm()
-		const inverseExponent = fe.num.invm(this.prime)
-		const num = (new BN(this.num).mul(inverseExponent)).mod(new BN(this.prime));
+		const inv = fer.redPow(this.prime.sub(new BN(2))).mod(this.prime)
+		const num = (new BN(this.num).mul(inv)).mod(new BN(this.prime));
 		return new FieldElement(num, this.prime);
 
 	}
@@ -113,7 +101,7 @@ class Point {
 				throw new Error(`(${this.x.num}, ${this.y.num}) is not on the curve1`);
 			}
 		} else {
-			if (this.x === undefined) {
+			if (this.x == undefined) {
 				return
 			}
 			if (Math.pow(this.y, 2) != (Math.pow(this.x, 3) + this.a * this.x + this.b)) {
@@ -163,16 +151,15 @@ class Point {
 			}
 		} else {
 			//Real
-			if (this.x === undefined) {
+			if (this.x == undefined) {
 				return other;
-			}
-			if (other.x === undefined) {
-				return this;
 			}
 			if (this.a != other.a || this.b != other.b) {
 				throw new Error(`Points (${this}, ${other}) are not on the same curve`)
 			}
-			else if (this.x === other.x && this.y != other.y) return new Point(undefined, undefined, 5, 7);
+			else if (isNaN(this.x)) return other;
+			else if (isNaN(other.x)) return this;
+			else if (this.x == other.x && this.y != other.y) return new Point(undefined, undefined, 5, 7);
 			else if (this.x != other.x) {
 				const s = (other.y - this.y) / (other.x - this.x);
 				x = Math.pow(s, 2) - this.x - other.x;
@@ -204,10 +191,10 @@ class Point {
 }
 
 Point.prototype.toString = function(){
-	if (this.x.num == undefined) {
+	if (this.x == undefined) {
 		return 'Point(infinity)'
 	} else {
-		return `Point (${this.x.num.toNumber(10)}, ${this.y.num.toNumber(10)})_${this.x.prime.toNumber(10)}`
+		return `Point (${this.x.toString()}, ${this.y.toString()})`
 	}
 }
 
