@@ -4,7 +4,7 @@
   "description": "",
   "main": "ecc.js",
   "scripts": {
-    "test": "mocha --watch --grep ECC",
+    "test": "mocha --watch --grep little_endian_to_int",
     "testall": "mocha --watch "
   },
   "author": "",

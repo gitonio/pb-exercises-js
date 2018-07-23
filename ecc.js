@@ -505,3 +505,5 @@ module.exports.S256Point = S256Point;
 module.exports.parseHexString = parseHexString;
 module.exports.Signature = Signature;
 module.exports.PrivateKey = PrivateKey;
+module.exports.G = G;
+module.exports.N = N;

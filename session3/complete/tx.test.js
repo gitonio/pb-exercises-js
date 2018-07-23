@@ -1,10 +1,10 @@
 var { assert, expect} = require('chai');
-var Tx = require('../tx');
-var Script = require('../script')
+var Tx = require('./tx');
+var Script = require('./script')
 var BN = require('bn.js')
 var Readable = require('stream').Readable
-var ecc = require('../ecc')
-var helper = require('../helper')
+var ecc = require('./ecc')
+var helper = require('./helper')
 
 
  describe('TxTest', function() {
@@ -15,15 +15,15 @@ var helper = require('../helper')
 	readable.push(rawTx)
 	readable.push(null)
 		
-	//tx = Tx.Tx.parse(readable)
-	//sc = new Script.Script.parse(rawTx2); 
+	tx = Tx.Tx.parse(readable)
+	sc = new Script.Script(rawTx2);
 
-	it('test parse version', function() {
+	it('test_parse_version', function() {
 		assert.equal(tx.version, 1);
 	})
 
 	 
-	it('test parse inputs', function() {
+	it('test_parse_inputs', function() {
 		assert.equal(tx.inputs.length,1)
 		want = Buffer.from('d1c789a9c60383bf715f3f6ad9d14b91fe55f3deb369fe5d9280cb1a01793f81','hex');
 		assert.deepEqual(tx.inputs[0].prevTx, want);
@@ -46,7 +46,7 @@ var helper = require('../helper')
 		assert.deepEqual(tx.outputs[1].scriptPubkey.serialize(), want)
 	})
 	
-	it('test parse locktime', function() {
+	it('test_parse_locktime', function() {
 		assert.deepEqual(tx.locktime, 410393);
 
 	})

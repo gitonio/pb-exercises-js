@@ -47,7 +47,7 @@ describe('test flip endian', function() {
 
 })
 
-describe('little endian to int', function () {
+describe('little_endian_to_int', function () {
 		let bytes = helper.strToBytes('99c3980000000000', 'hex')
 		
 		let want = 10011545

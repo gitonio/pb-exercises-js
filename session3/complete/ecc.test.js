@@ -321,7 +321,7 @@ describe('S256Test', function() {
 			)
 		})
 		
-		it('test verify', function () {
+		it('test_verify', function () {
 			point = new ecc.S256Point(
 				new BN('887387e452b8eacc4acfde10d9aaf7f6d9a0f975aabb10d006e4da568744d06c', 16),
 				new BN('61de6d95231cd89026e286df3b6ae4a894a3378e393e93a0f45b666329a0ae34', 16));
@@ -362,7 +362,7 @@ describe('PrivateKeyTest', function() {
 		assert.ok(pk.point.verify(z1,sig)); 
 	})
 
-	it('test wif', function() {
+	it('test_wif', function() {
 		let secret = new BN('115792089237316194620101962879192770082288938495059262778356087116516711989248',10);
 		pk = new ecc.PrivateKey(secret);
 		let expected = 'L5oLkpV3aqBJ4BgssVAsax1iRa77G5CVYnv9adQ6Z87te7TyUdSC';
