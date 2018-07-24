@@ -15,8 +15,8 @@ var helper = require('../helper')
 	readable.push(rawTx)
 	readable.push(null)
 		
-	//tx = Tx.Tx.parse(readable)
-	//sc = new Script.Script.parse(rawTx2); 
+	tx = Tx.Tx.parse(readable)
+	sc = new Script.Script(rawTx2);
 
 	it('test parse version', function() {
 		assert.equal(tx.version, 1);

@@ -145,9 +145,12 @@ function flipEndian(h) {
     return h.match(/.{2}/g).reverse().join('');
 }
 
-function littleEndianToInt(b) {
+function littleEndianToInt(ib) {
+    const b = [...ib].reverse()
 	//return b.readUInt32LE()
-	return b.readUIntLE(0,Buffer.byteLength(b))
+    //return b.readUIntLE(0,Buffer.byteLength(b))
+    //console.log('out', b) 
+    return new BN(Buffer.from(b).toString('hex'),'hex').toNumber(10)
 }
 
 function intToLittleEndian(n, length) {

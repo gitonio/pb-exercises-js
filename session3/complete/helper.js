@@ -146,8 +146,10 @@ function flipEndian(h) {
 }
 
 function littleEndianToInt(b) {
-	//return b.readUInt32LE()
-	return b.readUIntLE(0,Buffer.byteLength(b))
+    //return b.readUInt32LE()
+    
+    //return b.readUIntLE(0,Buffer.byteLength(b))
+    return new BN(b.reverse().toString('hex'),'hex').toNumber(10)
 }
 
 function intToLittleEndian(n, length) {
