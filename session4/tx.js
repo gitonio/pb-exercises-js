@@ -210,8 +210,8 @@ class TxIn {
 	}
 	
 	getUrl(testnet = false) {
-		return (testnet ?  'https://testnet.blockexplorer.com/api' :  'https://blockexplorer.com/api');
-		//return (testnet ?  'http://client:pleasedonthackme@tbtc.programmingblockchain.com:18332' :  'http://pbclient:ecdsaisawesome@btc.programmingblockchain.com:8332');
+		//return (testnet ?  'https://testnet.blockexplorer.com/api' :  'https://blockexplorer.com/api');
+		return (testnet ?  'http://client:pleasedonthackme@tbtc.programmingblockchain.com:18332' :  'http://pbclient:ecdsaisawesome@btc.programmingblockchain.com:8332');
 	}
 	
 	fetchTxAsync(testnet=false) {
@@ -240,6 +240,37 @@ class TxIn {
 		}
 	}
 	
+	
+	fetchTx(testnet=false) {
+		if (!(this.prevTx in this.cache)) {
+			const url = this.getUrl(testnet) ;
+
+			const req = request('POST', url,{
+				headers : {
+					'content-type': 'application/json',
+				},
+				json : {
+					'jsonrpc': '2.0',
+					'method': 'getrawtransaction',
+					'params': [this.prevTx.toString('hex'),],
+					'id': '0',
+				},
+	
+			} )
+
+			const rawtx = JSON.parse(req.getBody('utf8')).result
+			const raw = Buffer.from(rawtx,'hex');
+			let readable = new Readable();
+			readable.push(raw);
+			readable.push(null);
+			let tx = Tx.parse(readable);
+			this.cache[this.prevTx] = tx;
+			
+		};	
+		return this.cache[this.prevTx]
+		//return tx
+	}
+	/*
 	fetchTx(testnet=false) {
 		if (!(this.prevTx in this.cache)) {
 			const url = this.getUrl(testnet) + '/rawtx/' + this.prevTx.toString('hex');
@@ -256,7 +287,7 @@ class TxIn {
 		return this.cache[this.prevTx]
 		
 	}
-	
+*/
 	
 	valueAsync(testnet=false) {	
 		return this.fetchTxAsync(testnet=testnet)

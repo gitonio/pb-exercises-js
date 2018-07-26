@@ -50,7 +50,6 @@ describe('test flip endian', function() {
 describe('little_endian_to_int', function () {
     
 		let bytes = helper.strToBytes('99c3980000000000', 'hex')
-        console.log('in',bytes.toString('hex'))
 		
 		let want = 10011545
 		it('le1', function() {
@@ -59,7 +58,6 @@ describe('little_endian_to_int', function () {
 	
         bytes = helper.strToBytes('a135ef0100000000', 'hex')
         //console.log(new BN(bytes.reverse().toString('hex'),'hex').toNumber(10))
-        console.log('in',bytes.toString('hex'))
 		want = 32454049
 		it('le2', function() {
 			assert.equal(helper.littleEndianToInt(bytes), want)			
