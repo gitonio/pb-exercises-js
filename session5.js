@@ -86,6 +86,60 @@ if (txIns[0].scriptPubkey(true).elements[2].toString('hex').toString('hex') !== 
 
 console.log(txObj.serialize().toString('hex'))
 
+
+//#Bonus
+// Exercise 3.1
+console.log('\nExercise 3.1')
+//Step 1
+prevTx1 = Buffer.from('89cbfe2eddaddf1eb11f5c4adf6adaa9bca4adc01b2a3d03f8dd36125c068af4','hex')
+prevIndex1 = 0
+prevTx2 = Buffer.from('19069e1304d95f70e03311d9d58ee821e0978e83ecfc47a30af7cd10fca55cf4','hex')
+prevIndex2 = 0
+targetAddress = 'muvpVznkBtk8rRSxLRVQRdUhsMjS7aKRne'
+targetAmount = 1.71
+secret = new BN('61740721216174072121',10)
+priv = new ecc.PrivateKey(secret)
+
+// initialize inputs
+txIns = []
+// create a new tx input
+txIns.push(new tx.TxIn(prevTx1, prevIndex1, Buffer.from([]),0xffffffff, {}))
+txIns.push(new tx.TxIn(prevTx2, prevIndex2, Buffer.from([]),0xffffffff, {}))
+
+//# initialize outputs
+txOuts = []
+// decode the hash160 from the target address
+h160 = helper.decodeBase58(targetAddress)
+scriptPubkey = helper.p2pkhScript(h160)
+targetSatoshis = targetAmount*100000000
+txOuts.push(new tx.TxOut(targetSatoshis, scriptPubkey))
+
+h160 = helper.decodeBase58(changeAddress)
+scriptPubkey =  helper.p2pkhScript(h160)
+changeSatoshis = changeAmount*100000000
+txOuts.push(new tx.TxOut(changeSatoshis, scriptPubkey))
+txObj = new tx.Tx(1, txIns, txOuts, 0, true)
+
+//# Step 3
+txObj.signInput(0, priv, 1)
+txObj.signInput(1, priv, 1)
+ //if (priv.point.address(true,true) !== changeAddress) {
+ //    throw new Error('Private Key does not correspond to Change Address, check priv_key and change_address')
+ //}
+
+if (txIns[0].scriptPubkey(true).elements[2].toString('hex').toString('hex') !== helper.decodeBase58(priv.point.address(true, true)).toString('hex') ){
+    throw new Error('Output is not something you can spend with this private key. Check that the prev_tx and prev_index are correct')
+}
+
+ //if (txObj.fee(true) > .05 * 100000000 || txObj.fee(true) <= 0) {
+ //    throw new Error(`Check that the change amount is reasonable. Fee is ${txObj.fee()}`)
+ //}
+
+console.log(txObj.serialize().toString('hex'))
+
+
+
+
 //Exercise 4.1
 console.log('\nExercise 4.1')
 hexRedeemScript = '5221022626e955ea6ea6d98850c994f9107b036b1334f18ca8830bfff1295d21cfdb702103b287eaf122eea69030a0e9feed096bed8045c8b98bec453e1ffac7fbdbd4bb7152ae'

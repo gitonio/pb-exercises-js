@@ -17,7 +17,7 @@ describe('BlockTest', function() {
     readable.push(null)
     b = block.parse(readable)
 
-    it('test parse block', function() {
+    it('test_parse_block', function() {
         assert.equal(b.version, 0x20000002);
         want = Buffer.from('000000000000000000fd0c220a0a8c3bc5a7b487e8c8de0dfa2373b12894c38e','hex')
         assert.deepEqual(b.prevBlock, want)
@@ -28,11 +28,11 @@ describe('BlockTest', function() {
         assert.deepEqual(b.nonce, Buffer.from('a4ffd71d','hex'))
     })
 
-    it('test serialize block', function() {
+    it('test_serialize_block', function() {
         assert.deepEqual(b.serialize(), blockRaw)
     })
 
-    it('test hash block', function() {
+    it('test_hash_block', function() {
         assert.deepEqual(b.hash(), Buffer.from('0000000000000000007e9e4c586439b0cdbe13b1370bdd9435d76a644d047523','hex'))
     })
 
@@ -86,7 +86,7 @@ describe('BlockTest', function() {
        assert.deepEqual(b.target(), new BN('13ce9000000000000000000000000000000000000000000', 16) )
      })
 
-     it('test_checkPOW', function() {
+     it('test_check_pow', function() {
         blockRaw = Buffer.from('04000000fbedbbf0cfdaf278c094f187f2eb987c86a199da22bbb20400000000000000007b7697b29129648fa08b4bcd13c9d5e60abb973a1efac9c8d573c71c807c56c3d6213557faa80518c3737ec1','hex')
         readable = new Readable()
         readable.push(blockRaw)

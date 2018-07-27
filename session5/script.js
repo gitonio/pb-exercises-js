@@ -1,5 +1,4 @@
 var Readable = require('stream').Readable
-var helper = require('./helper')
 
 OP_CODES = {
   "0": "OP_0", 
@@ -217,19 +216,7 @@ class Script {
 			return redeemScript.elements[index + 1];
 		} 
 		
-  }
-  
-  address(testnet=false) {
-    const sigType = this.type();
-    if (sigType == 'p2pkh') {
-      h160 = this.elements[2];
-			return helper.h160ToP2pkhAddress(h160,testnet)
-		} else if (sigType == 'p2sh') {
-      h160 = this.elements[1];
-			return helper.h160ToP2shAddress(h160,testnet)
-		} 
-
-  }
+	}
 	
 	
 	

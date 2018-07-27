@@ -15,7 +15,7 @@ var Readable = require('stream').Readable
 	}) 
 	*/
 	
-	it('test p2pkh', function() {
+	it('test_p2pkh', function() {
 		
 		scriptPubkeyRaw = Buffer.from('76a914bc3b654dca7e56b04dca18f2566cdaf02e8d9ada88ac','hex');
 		scriptPubkey = script.Script.parse(scriptPubkeyRaw)
@@ -30,7 +30,7 @@ var Readable = require('stream').Readable
 		assert.deepEqual(scriptSig.secPubkey(), Buffer.from('0349fc4e631e3624a545de3f89f5d8684c7b8138bd94bdd531d2e213bf016b278a','hex'))
 	})
 	
-	it('test p2sh', function() {
+	it('test_p2sh', function() {
 		scriptPubkeyRaw = Buffer.from('a91474d691da1574e6b3c192ecfb52cc8984ee7b6c5687','hex');
 		scriptPubkey =  script.Script.parse(scriptPubkeyRaw)
 		assert.deepEqual(scriptPubkey.type(), 'p2sh');		
@@ -47,6 +47,22 @@ var Readable = require('stream').Readable
 		
 	})
 	
+	it('test_address', function() {
+		scriptRaw = Buffer.from('76a914338c84849423992471bffb1a54a8d9b1d69dc28a88ac','hex')
+		scriptPubkey = script.Script.parse(scriptRaw)
+		want = '15hZo812Lx266Dot6T52krxpnhrNiaqHya'
+		assert.deepEqual(scriptPubkey.address(false),want)
+		want = 'mkDX6B619yTLsLHVp23QanB9ehT5bcf89D'
+		assert.deepEqual(scriptPubkey.address(true),want)
 	
+		scriptRaw = Buffer.from('a91474d691da1574e6b3c192ecfb52cc8984ee7b6c5687','hex')
+		scriptPubkey = script.Script.parse(scriptRaw)
+		want = '3CLoMMyuoDQTPRD3XYZtCvgvkadrAdvdXh'
+		assert.deepEqual(scriptPubkey.address(false),want)
+		want = '2N3u1R6uwQfuobCqbCgBkpsgBxvr1tZpe7B'
+		assert.deepEqual(scriptPubkey.address(true),want)
+		
+
+	})
 	 
  })

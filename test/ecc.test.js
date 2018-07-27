@@ -340,7 +340,7 @@ describe('S256Test', function() {
 			)
 		})
 		
-		it('test verify', function () {
+		it('test_verify', function () {
 			point = new ecc.S256Point(
 				new BN('887387e452b8eacc4acfde10d9aaf7f6d9a0f975aabb10d006e4da568744d06c', 16),
 				new BN('61de6d95231cd89026e286df3b6ae4a894a3378e393e93a0f45b666329a0ae34', 16));
@@ -354,7 +354,7 @@ describe('S256Test', function() {
 			assert.ok(point.verify(z, new ecc.Signature(r, s)))
 		})
 
-		it('test parse', function() {
+		it('test_parse', function() {
 			sec = Buffer.from('0349fc4e631e3624a545de3f89f5d8684c7b8138bd94bdd531d2e213bf016b278a','hex')
 			point = ecc.S256Point.parse(sec)
 			want = new BN('a56c896489c71dfc65701ce25050f542f336893fb8cd15f4e8e5c124dbf58e47', 16)

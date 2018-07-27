@@ -4,7 +4,7 @@
   "description": "",
   "main": "ecc.js",
   "scripts": {
-    "test": "mocha --watch --grep test_checkPOW",
+    "test": "mocha --watch --grep test_address",
     "testall": "mocha --watch "
   },
   "author": "",

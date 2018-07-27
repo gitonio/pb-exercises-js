@@ -74,12 +74,12 @@ class Tx {
 			   
 	}
 	
-	fee(testnet=false) {
+	fee() {
 		//TODO cleanup
 		let inputSum = 0;
 		let outputSum = 0;
 		let x = this.inputs.map(obj => {
-			return obj.value(testnet)
+			return obj.value()
 		})
 
 		let y = this.outputs.map(obj => {
