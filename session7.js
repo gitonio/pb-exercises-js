@@ -387,3 +387,9 @@ readable = new Readable()
 readable.push(msg)
 readable.push(null)
 console.log(network.NetworkEnvelope.parse(readable).toString())
+
+
+var socket = require('socket.io-client')('46.101.99.121:8333');
+socket.on('connect', function(){});
+socket.on('event', function(data){});
+socket.on('disconnect', function(){});
