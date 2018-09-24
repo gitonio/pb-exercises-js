@@ -376,9 +376,9 @@ class S256Point extends Point {
 }
 S256Point.prototype.toString = function(){
 	if (this.x == undefined) {
-		return 'Point(infinity)'
+		return 'S256Point(infinity)'
 	} else {
-		return `Point (${this.x.toString()}, ${this.y.toString()})`
+		return `S256Point (${this.x.toString()}, ${this.y.toString()})`
 	}
 }
 
