@@ -28,8 +28,13 @@ rp = Array.from({length: prime}, (x,i) => i)
 console.log(rp)
 k = Math.floor(Math.random()*prime+1)
 console.log(k)
-rp = rp.map((x,i) => (i*k%prime)).sort(function(a,b) {return a - b;})
-console.log(rp)
+rps = rp.map((x,i) => (i*k%prime)).sort(function(a,b) {return a - b;})
+console.log(rps)
+
+k = [1,3,7,13,18]
+rp = Array.from({length: prime}, (x,i) => i)
+prime = 
+k.map( x_k => rp.map( (x_rp, i) => i*x_k%prime)).map(x => x.sort(function(a,b) {return a - b}))
 
 
 //Exercise 2.3
