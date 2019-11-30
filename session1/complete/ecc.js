@@ -1,6 +1,5 @@
 
 //https://dev.to/maurobringolf/a-neat-trick-to-compute-modulo-of-negative-numbers-111e
-var BN = require('bn.js');
 var hash = require('hash.js');
 var helper = require('./helper')
 var Readable = require('stream').Readable
@@ -11,13 +10,13 @@ class FieldElement {
 	constructor(num, prime) {
 		if (num == undefined) {
 			this.num = undefined
-			this.prime = new BN(prime);
+			this.prime = BigInt(prime);
 		} else {
-			this.num = (num && BN.isBN(num) ) ? num : new BN(num);
-			this.prime = new BN(prime);
+			this.num = (num && typeof num === 'bigint') ? num : BigInt(num);
+			this.prime = BigInt(prime);
 		}
-		if (this.num && this.num.isNeg()) {
-			throw new Error(`Num ${this.num} not in field range 0 to ${this.prime - 1}`);
+		if (num && num < 0) {
+			throw new Error(`Num ${num} not in field range 0 to ${prime - 1}`);
 		}
 	}
 
@@ -26,58 +25,58 @@ class FieldElement {
 	}
 
 	add(fe) {
-		if (!this.prime.eq(fe.prime)) {
+		if (this.prime != fe.prime ) {
 			throw new Error('Primes must be the same');
 		}
-		const num = this.num.add(fe.num).mod(this.prime);
+		const num = helper.mod(this.num + fe.num,this.prime);
 		return new FieldElement(num, fe.prime);
 	}
 	sub(fe) {
-		if (!this.prime.eq(fe.prime)) {
+		if (this.prime != fe.prime ) {
 			throw new Error('Primes must be the same');
 		}
 		//https://dev.to/maurobringolf/a-neat-trick-to-compute-modulo-of-negative-numbers-111e
 		//const num = (((this.num - fe.num) % this.prime) + this.prime) % this.prime;
-		const num = this.num.sub(fe.num).mod(this.prime).add(this.prime).mod(this.prime);
+		const num = helper.mod(this.num - fe.num,this.prime)
 		return new FieldElement(num, fe.prime);
 	}
+
 	mul(fe) {
-		if (!this.prime.eq(fe.prime)) {
+		if (this.prime != fe.prime ) {
 			throw new Error('Primes must be the same');
 		}
-		const num = this.num.mul(fe.num).mod(this.prime);
+		const num = helper.mod(this.num * fe.num, this.prime);
 		return new FieldElement(num, fe.prime);
 	}
+
 	rmul(f) {
-		const num = this.num.mul(new BN(f)).mod(this.prime);
+		const num = helper.mod(this.num * BigInt(f),this.prime)
 		return new FieldElement(num, this.prime);
 	}
+
 	pow(f) {
 		let num;
 		if (f < 0) {
-			num = new BN(Math.pow(this.num, -f)).pow(new BN(this.prime - 2)).mod(new BN(this.prime)).toNumber();
-		} else if (BN.isBN(f)) {
-			let red = BN.red(this.prime)
-			let numred = this.num.toRed(red)
-			let x = numred.redPow(f.mod(this.prime.subn(1)))
-			num = x.fromRed();
+			num = helper.pow(helper.pow(this.num, -BigInt(f), this.prime), this.prime - 2n, this.prime)
+		} else if (typeof f === 'bigint') {
+			num = helper.pow(this.num, f, this.prime)
 		} else {
-			num = Math.pow(this.num, f % (this.prime - 1)) % this.prime;
-			const pf = new BN(f).mod(this.prime.sub(new BN(1)))
-
-			num = this.num.pow(pf).mod(this.prime);
-
+			num = helper.pow(this.num, BigInt(f), this.prime)
 		}
 		return new FieldElement(num, this.prime);
 	}
+
 	div(fe) {
-		if (!this.prime.eq(fe.prime)) {
+		if ( this.prime != fe.prime) {
 			throw new Error('Primes must be the same');
 		}
+		/*
 		let red = BN.red(this.prime);
 		let fer = fe.num.toRed(red)
 		const inv = fer.redPow(this.prime.sub(new BN(2))).mod(this.prime)
 		const num = (new BN(this.num).mul(inv)).mod(new BN(this.prime));
+		*/
+		const num = helper.mod(this.num * helper.pow(fe.num, fe.prime - 2n, fe.prime), fe.prime)
 		return new FieldElement(num, this.prime);
 
 	}
@@ -86,7 +85,7 @@ class FieldElement {
 FieldElement.prototype.toString = function(){
 	return `FieldElement_${this.prime}(${this.num})`
 }
-
+ 
 class Point {
 	constructor(x, y, a, b) {
 		this.x = x;
@@ -198,7 +197,7 @@ Point.prototype.toString = function(){
 	}
 }
 
-
+/*
 
 //let prime = new BN('fffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f ',16);
 //let prime = new BN(223);
@@ -236,9 +235,9 @@ S256Field.prototype.toString = function(){
 
 class S256Point extends Point {
 	constructor(x, y) {
-		let prime = new BN('fffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f ', 16)
-		let a = new S256Field(new BN(0), prime);
-		let b = new S256Field(new BN(7), prime);
+		let prime = BigInt('0xfffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f ')
+		let a = new S256Field(0n, prime);
+		let b = new S256Field(7n, prime);
 		if (x instanceof FieldElement) {
 			super(x, y, a, b);
 		} else {
@@ -436,9 +435,9 @@ class Signature {
 }
 
 let G = new S256Point(
-	new BN('79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798', 16),
-	new BN('483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8', 16));	
-let N = new BN('FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141', 16);
+	BigInt('0x79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798'),
+	BigInt('0x483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8'));	
+let N = BigInt('0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141');
 
 class PrivateKey {
 	
@@ -472,6 +471,7 @@ class PrivateKey {
 		let complet = Buffer.concat([prefix, sb, suffix])
 		return helper.encodeBase58Checksum(complet)
 	}
+	
 }
 
 function parseHexString(str) {
@@ -483,12 +483,15 @@ function parseHexString(str) {
 	}
 
 	return result;
+	
 }
-
+*/
 module.exports.FieldElement = FieldElement;
 module.exports.Point = Point;
+/*
 module.exports.S256Field = S256Field;
 module.exports.S256Point = S256Point;
 module.exports.parseHexString = parseHexString;
 module.exports.Signature = Signature;
 module.exports.PrivateKey = PrivateKey;
+*/

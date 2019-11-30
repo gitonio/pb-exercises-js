@@ -110,7 +110,7 @@ describe('Point', function() {
 	})
 })
 
-
+/*
 describe('ECC', function() {
 	
 	it('test_on_curve', function () {
@@ -369,3 +369,5 @@ describe('PrivateKeyTest', function() {
 		assert.equal(pk.wif(true,false), expected)
 	})
 })
+
+*/

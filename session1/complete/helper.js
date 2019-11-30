@@ -33,7 +33,6 @@ function bytesToString(b, encoding = 'ascii') {
 }
 
 function littleEndianToInt(b) {
-  console.log(Buffer.byteLength(b));
   return b.readUIntLE(6, 2) + b.readUIntLE(0, Buffer.byteLength(b) - 2);
 }
 
@@ -49,13 +48,13 @@ function mod(a, b) {
 
 function pow(b, e, m) {
   let result = 1n;
-  b = pmod(b, m);
+  b = mod(b, m);
   while (e > 0) {
     if (e & 1n) {
-      result = pmod(result * b, m);
+      result = mod(result * b, m);
     }
     e = e >> 1n;
-    b = pmod(b * b, m);
+    b = mod(b * b, m);
   }
   return result;
 }
