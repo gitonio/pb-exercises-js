@@ -1,6 +1,5 @@
 
 //https://dev.to/maurobringolf/a-neat-trick-to-compute-modulo-of-negative-numbers-111e
-var BN = require('bn.js');
 var hash = require('hash.js');
 var helper = require('./helper')
 var Readable = require('stream').Readable
@@ -9,84 +8,69 @@ var Readable = require('stream').Readable
 
 class FieldElement {
 	constructor(num, prime) {
-		if (num === undefined) {
+		if (num == undefined) {
 			this.num = undefined
-			this.prime = new BN(prime);
+			this.prime = BigInt(prime);
 		} else {
-			this.num = (num && BN.isBN(num) ) ? num : new BN(num);
-			this.prime = new BN(prime);
+			this.num = (num && typeof num === 'bigint') ? num : BigInt(num);
+			this.prime = BigInt(prime);
 		}
-		if (this.num && (this.num.isNeg() || this.num.gte(this.prime))) {
-			throw new Error(`Num ${this.num} not in field range 0 to ${this.prime - 1}`);
+		if (num && num < 0) {
+			throw new Error(`Num ${num} not in field range 0 to ${prime - 1}`);
 		}
 	}
 
 	equals(fe) {
-		if (fe.num === undefined) return true
-		return (this.num.eq(fe.num) && this.prime.eq(fe.prime))
+		if (this.num == fe.num) return 'true'
 	}
 
 	add(fe) {
-		if (!this.prime.eq(fe.prime)) {
+		if (this.prime != fe.prime ) {
 			throw new Error('Primes must be the same');
 		}
-		const num = this.num.add(fe.num).mod(this.prime);
+		const num = helper.mod(this.num + fe.num,this.prime);
 		return new FieldElement(num, fe.prime);
 	}
 	sub(fe) {
-		if (!this.prime.eq(fe.prime)) {
+		if (this.prime != fe.prime ) {
 			throw new Error('Primes must be the same');
 		}
 		//https://dev.to/maurobringolf/a-neat-trick-to-compute-modulo-of-negative-numbers-111e
-		//const num = this.num.sub(fe.num).mod(this.prime).add(this.prime).mod(this.prime);
-		const num = helper.mod(this.num.sub(fe.num), this.prime)
+		//const num = (((this.num - fe.num) % this.prime) + this.prime) % this.prime;
+		const num = helper.mod(this.num - fe.num,this.prime)
 		return new FieldElement(num, fe.prime);
 	}
 
 	mul(fe) {
-		if (!this.prime.eq(fe.prime)) {
+		if (this.prime != fe.prime ) {
 			throw new Error('Primes must be the same');
 		}
-		const num = this.num.mul(fe.num).mod(this.prime);
+		const num = helper.mod(this.num * fe.num, this.prime);
 		return new FieldElement(num, fe.prime);
 	}
 
 	rmul(f) {
-		const num = this.num.mul(new BN(f)).mod(this.prime);
+		const num = helper.mod(this.num * BigInt(f),this.prime)
 		return new FieldElement(num, this.prime);
 	}
 
 	pow(f) {
 		let num;
-		f = new BN(f)
-		let red = BN.red(this.prime)
-		let numred = this.num.toRed(red)
-		let exponent  = helper.mod(f, this.prime.subn(1) )
-		let x = numred.redPow(exponent).mod(this.prime)
-		try {
-			num = x.fromRed();
-		} catch (error) {
-			num = x
+		if (f < 0) {
+			num = helper.pow(helper.pow(this.num, -BigInt(f), this.prime), this.prime - 2n, this.prime)
+		} else if (typeof f === 'bigint') {
+			num = helper.pow(this.num, f, this.prime)
+		} else {
+			num = helper.pow(this.num, BigInt(f), this.prime)
 		}
 		return new FieldElement(num, this.prime);
 	}
 
 	div(fe) {
-		if (!this.prime.eq(fe.prime)) {
+		if ( this.prime != fe.prime) {
 			throw new Error('Primes must be the same');
 		}
-
-		/*
-		// Using fermats little theorm
-		let red = BN.red(this.prime);
-		let fer = fe.num.toRed(red)
-		const invRed = fer.redPow(this.prime.sub(new BN(2))).mod(this.prime)
-		const inv = invRed.fromRed()
-		*/
-
-		// Using BN builtin invm()
-		const inverseExponent = fe.num.invm(this.prime)
-		const num = (new BN(this.num).mul(inverseExponent)).mod(new BN(this.prime));
+		const num = helper.mod(this.num * helper.pow(fe.num, fe.prime - 2n, fe.prime), fe.prime)
 		return new FieldElement(num, this.prime);
 
 	}
@@ -95,7 +79,7 @@ class FieldElement {
 FieldElement.prototype.toString = function(){
 	return `FieldElement_${this.prime}(${this.num})`
 }
-
+ 
 class Point {
 	constructor(x, y, a, b) {
 		this.x = x;
@@ -106,11 +90,11 @@ class Point {
 			if (this.x.num == undefined) {
 				return
 			}
-			if (!this.y.pow(2).num.eq(this.x.pow(3).add(this.a.mul(this.x)).add(this.b).num)) {
+			if (this.y.pow(2).num !== (this.x.pow(3).add(this.a.mul(this.x)).add(this.b).num)) {
 				throw new Error(`(${this.x.num}, ${this.y.num}) is not on the curve1`);
 			}
 		} else {
-			if (this.x === undefined) {
+			if (this.x == undefined) {
 				return
 			}
 			if (Math.pow(this.y, 2) != (Math.pow(this.x, 3) + this.a * this.x + this.b)) {
@@ -136,10 +120,10 @@ class Point {
 			if (other.x.num == undefined) {
 				return this;
 			}
-			if (!this.a.num.eq(other.a.num) || !this.b.num.eq(other.b.num)) {
+			if (this.a.num != other.a.num || this.b.num != other.b.num) {
 				throw new Error(`Points (${this}, ${other}) are not on the same curve`)
 			}
-			if (this.x.num && !this.x.num.eq(other.x.num)) {
+			if (this.x.num && this.x.num != other.x.num) {
 				const s = other.y.sub(this.y).div(other.x.sub(this.x));
 
 				let x = s.pow(2).sub(this.x).sub(other.x);
@@ -147,29 +131,28 @@ class Point {
 				return new Point(x, y, this.a, this.b);
 
 			}
-			if (this.x.num && this.x.num.eq(other.x.num) && this.y.num.eq(other.y.num)) {
+			if (this.x.num && this.x.num === other.x.num && this.y.num === other.y.num) {
 				const s = (this.x.pow(2).rmul(3).add(this.a)).div(this.y.rmul(2));
 				let x = s.pow(2).sub(this.x.rmul(2));
 				let y = s.mul(this.x.sub(x)).sub(this.y);
 				return new Point(x, y, this.a, this.b);
 			}
-			if (this.x.num && this.x.num.eq(other.x.num) && !this.y.num.eq(other.y.num)) {
+			if (this.x.num && this.x.num === other.x.num && this.y.num !== other.y.num) {
 				return new Point(new FieldElement(undefined, this.x.prime),
 					new FieldElement(undefined, this.x.prime),
 					this.a, this.b)
 			}
 		} else {
 			//Real
-			if (this.x === undefined) {
+			if (this.x == undefined) {
 				return other;
-			}
-			if (other.x === undefined) {
-				return this;
 			}
 			if (this.a != other.a || this.b != other.b) {
 				throw new Error(`Points (${this}, ${other}) are not on the same curve`)
 			}
-			else if (this.x === other.x && this.y != other.y) return new Point(undefined, undefined, 5, 7);
+			else if (isNaN(this.x)) return other;
+			else if (isNaN(other.x)) return this;
+			else if (this.x == other.x && this.y != other.y) return new Point(undefined, undefined, 5, 7);
 			else if (this.x != other.x) {
 				const s = (other.y - this.y) / (other.x - this.x);
 				x = Math.pow(s, 2) - this.x - other.x;
@@ -201,10 +184,10 @@ class Point {
 }
 
 Point.prototype.toString = function(){
-	if (this.x.num == undefined) {
+	if (this.x == undefined) {
 		return 'Point(infinity)'
 	} else {
-		return `Point (${this.x.num.toNumber(10)}, ${this.y.num.toNumber(10)})_${this.x.prime.toNumber(10)}`
+		return `Point (${this.x.toString()}, ${this.y.toString()})`
 	}
 }
 
@@ -215,7 +198,7 @@ Point.prototype.toString = function(){
 
 class S256Field extends FieldElement {
 
-	constructor(num, prime = new BN('fffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f ', 16)) {
+	constructor(num, prime = BigInt('0xfffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f ')) {
 		super(num, prime);
 		this.prime = prime;
 	}
@@ -229,7 +212,7 @@ class S256Field extends FieldElement {
 	}
 
 	sqrt() {
-		const P = new BN('115792089237316195423570985008687907853269984665640564039457584007908834671663',10);
+		const P = BigInt('115792089237316195423570985008687907853269984665640564039457584007908834671663',10);
 		const ep = P.addn(1).divn(4)
 		return new S256Field(this.pow(ep).num, this.prime)
 	}
@@ -246,9 +229,9 @@ S256Field.prototype.toString = function(){
 
 class S256Point extends Point {
 	constructor(x, y) {
-		let prime = new BN('fffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f ', 16)
-		let a = new S256Field(new BN(0), prime);
-		let b = new S256Field(new BN(7), prime);
+		let prime = BigInt('0xfffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f ')
+		let a = new S256Field(0n, prime);
+		let b = new S256Field(7n, prime);
 		if (x instanceof FieldElement) {
 			super(x, y, a, b);
 		} else {
@@ -258,20 +241,20 @@ class S256Point extends Point {
 
 	rmul(coefficient) {
 		const bits = 256;
-		let coef = new BN(coefficient)
+		let coef = BigInt(coefficient)
 		let current = new S256Point(this.x, this.y);
 
 		let result = new S256Point(undefined, undefined);
 		for (let index = 0; index < bits; index++) {
 
-			if (coef.andln(1)) {
+			if (coef & 1n) {
 
 				result = result.add(current);
 
 			}
 			current = current.add(current);
 
-			coef = coef.shrn(1);
+			coef = coef >> 1n;
 
 		}
 
@@ -283,8 +266,9 @@ class S256Point extends Point {
 
 	sec(compressed=true) {
 		if (compressed) {
-			let ba = this.x.num.toBuffer('be')
-			if (this.y.num.mod(new BN(2)).toString()==0) {
+//			let ba = this.x.num.toBuffer('be')
+			let ba = Buffer.from(this.x.num.toString(16),'hex')
+		if(helper.mod(this.y.num, 2n) == 0) {
 				let prefix = Buffer.from([2])
 				let arr = [prefix, ba]
 				var buf = Buffer.concat(arr)
@@ -298,8 +282,15 @@ class S256Point extends Point {
 			}
 		} else {
 			let prefix = Buffer.from([4]);
-			let nax = this.x.num.toBuffer('be')
-			let nay = this.y.num.toBuffer('be')
+			//let nax = Buffer.alloc(8)
+			//let nay = Buffer.alloc(8)
+//			let nax = this.x.num.toBuffer('be')
+//			let nay = this.y.num.toBuffer('be')
+			console.log(this.x.num)
+			//nax.writeBigUInt64BE(this.x.num,0)
+			//nay.writeBigUInt64BE(this.y.num, 0)
+			let nax = Buffer.from(this.x.num.toString(16),'hex')
+			let nay = Buffer.from(this.y.num.toString(16),'hex') 
 			let arr = [prefix, nax, nay]
 			return Buffer.concat(arr);
 			
@@ -329,6 +320,7 @@ class S256Point extends Point {
 		}
 	}
 	
+	/*
 	verify(z, sig) {
 		const N = new BN('FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141', 16);
 		const G = new S256Point(
@@ -373,6 +365,7 @@ class S256Point extends Point {
 			return new S256Point(x, oddBeta)
 		}
 	}
+	*/
 }
 S256Point.prototype.toString = function(){
 	if (this.x == undefined) {
@@ -382,125 +375,16 @@ S256Point.prototype.toString = function(){
 	}
 }
 
-class Signature {
-	constructor (r, s) {
-		this.r = r;
-		this.s = s;
-	}
-	
-	der () {
-
-		let rbin = this.r.toBuffer('be');
-		let pref = Buffer.from([])
-		if (rbin[0] > 128) {
-			pref = Buffer.from([0])
-			rbin = Buffer.concat([pref, rbin])
-		}
-		//let result = Buffer.alloc(34);
-		pref = Buffer.from([2, rbin.length])
-		let result = Buffer.concat([pref, rbin]);
-		
-		let sbin = this.s.toBuffer('be')
-		if (sbin[0] > 128) {
-			pref = Buffer.from([0])
-			sbin = Buffer.concat([pref, sbin])
-		}
-		pref = Buffer.from([2, sbin.length])
-		result = Buffer.concat([result, pref, sbin]);
-		pref = Buffer.from([0x30, result.length]); 
-		result = Buffer.concat([pref,  result])
-		return result;
-
-	}
-	
-	static parse (sig) {
-		let ss = new Readable();
-		ss.push(sig);
-		ss.push(null);
-
-		const compound = ss.read(1)[0]
-		if (compound != 0x30) {
-			throw new Error('Bad Signature');
-		}
-		const length = ss.read(1)[0]
-		if (length + 2 != sig.length) {
-			throw new Error('Bad Signature Length');
-		}
-		let marker = ss.read(1)[0] 
-		if (marker != 0x02) {
-			throw new Error('Bad Signature');
-		}
-		const rlength = ss.read(1)[0]
-		const r = ss.read(rlength)
-		marker = ss.read(1)[0]
-		if (marker != 0x02) {
-			throw new Error('Bad Signature');
-		}
-		const slength = ss.read(1)[0]
-		const s = ss.read(slength)
-		if (sig.length != rlength + slength + 6) {
-			throw new Error("Signature too long");
-		}
-		return new Signature(new BN(r),new BN(s));
-	}
-}
 
 let G = new S256Point(
-	new BN('79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798', 16),
-	new BN('483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8', 16));	
-let N = new BN('FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141', 16);
+	BigInt('0x79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798'),
+	BigInt('0x483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8'));	
+let N = BigInt('0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141');
 
-class PrivateKey {
-	
-	constructor(secret) {
-		this.secret = new BN(secret, 10);		
-		this.point = G.rmul(new BN(secret, 10));
-	}
-	
-	sign(z) {
-		//z = new BN(z)
-		let two = new BN(2);
-		let red = BN.red(N)
-		let k = new BN('400', 10);
-		let redk = k.toRed(red)
-		let k_inv_red = redk.redPow(N.subn(2))
-		let k_inv = k_inv_red.fromRed()
-
-		let r = G.rmul(k).x.num;
-		let s = r.mul(this.secret).add(z).mul(k_inv).mod(N);
-		if(s.gt(N.divRound(two))) {
-			s = N.sub(s);
-		}
-		return new Signature(r,s);
-	}
-
-	wif(compressed=true, testnet=false) {
-		
-		let sb = this.secret.toBuffer('be');
-		let prefix = testnet ? Buffer.from([0xef]) : Buffer.from([0x80]);
-		let suffix = compressed ? Buffer.from([0x01]) : Buffer.from([]);
-		let complet = Buffer.concat([prefix, sb, suffix])
-		return helper.encodeBase58Checksum(complet)
-	}
-}
-
-function parseHexString(str) {
-	var result = [];
-	while (str.length >= 8) {
-		result.push(parseInt(str.substring(0, 8), 16));
-
-		str = str.substring(8, str.length);
-	}
-
-	return result;
-}
 
 module.exports.FieldElement = FieldElement;
 module.exports.Point = Point;
 module.exports.S256Field = S256Field;
 module.exports.S256Point = S256Point;
-module.exports.parseHexString = parseHexString;
-module.exports.Signature = Signature;
-module.exports.PrivateKey = PrivateKey;
 module.exports.G = G;
-module.exports.N = N;
+module.exports.N = N; 

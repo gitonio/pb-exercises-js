@@ -5,7 +5,7 @@
   "main": "ecc.js",
   "scripts": {
     "test": "mocha --watch --grep test_address",
-    "testall": "mocha --watch session1/complete"
+    "testall": "mocha --watch session2/complete"
   },
   "author": "",
   "license": "ISC",
