@@ -387,4 +387,4 @@ module.exports.Point = Point;
 module.exports.S256Field = S256Field;
 module.exports.S256Point = S256Point;
 module.exports.G = G;
-module.exports.N = N; 
+module.exports.N = N;  

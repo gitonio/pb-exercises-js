@@ -114,9 +114,9 @@ function flipEndian(h) {
 }
 
 function littleEndianToInt(b) {
-	//return b.readUInt32LE()
-	return b.readUIntLE(0,Buffer.byteLength(b))
-}
+    return b.readUIntLE(6, 2) + b.readUIntLE(0, Buffer.byteLength(b) - 2);
+  }
+  
 
 function intToLittleEndian(n, length) {
 		const buf = Buffer.alloc(length);
